@@ -1,41 +1,40 @@
-# Core Flask dependencies
-Flask==3.0.0
-Flask-SQLAlchemy==3.1.1
+# Web Framework
+Flask==2.3.3
+Flask-SQLAlchemy==3.0.5
 Flask-Login==0.6.3
-Werkzeug==3.0.1
+Werkzeug==2.3.7
 
 # Database
-SQLAlchemy==2.0.23
-
-# PDF generation
-reportlab==4.0.7
+SQLAlchemy==2.0.21
 
 # Environment variables
 python-dotenv==1.0.0
 
-# AI/ML
-groq==0.4.1
+# Document processing
+pymupdf==1.22.5
+python-docx==0.8.11
+python-pptx==0.6.21
 
-# PyMuPDF==1.23.26  # Latest version (might work better)
-pymupdf==1.23.26  # Alternative package name
-PyPDF2==3.0.1
-python-docx==1.1.0  # for docx
-python-pptx==0.6.23  # for pptx
-Pillow==10.1.0  # for PIL (Image processing)
-pytesseract==0.3.10  # OCR
+# Image processing
+Pillow==10.0.1
+pytesseract==0.3.10
 
 # Archive handling
-zipfile36==0.1.3 
+zipfile36==0.1.3
 rarfile==4.1
-py7zr==0.20.8
+py7zr==0.20.6
 
-# Audio/Video processing
+# Video and audio processing
 moviepy==1.0.3
+
+# Speech recognition
 SpeechRecognition==3.10.0
 
-# System utilities
-pathlib2==2.3.7  # Enhanced pathlib support (optional, pathlib is built-in)
+# AI/ML
+groq==0.9.0
 
-pyaudio==0.2.11  # for microphone input in speech_recognition
-pocketsphinx==5.0.0  # offline speech recognition engine
-tesseract==0.1.3  # tesseract OCR engine wrapper
+# PDF generation
+reportlab==4.0.4
+
+# Additional utilities
+regex==2023.8.8
