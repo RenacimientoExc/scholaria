@@ -1,8 +1,5 @@
-import re
-import html
-from typing import Dict, List, Optional
+import re, html
 from urllib.parse import urlparse
-import base64
 
 class MarkdownRenderer:
     """Renderizador completo de Markdown para el chat de IA"""
