@@ -4357,3 +4357,28 @@ def renombrar_chat(chat_id):
         logger.error(f"Error renombrando chat: {e}")
         return jsonify({'error': 'Error interno'}), 500
 
+
+@routes.route('/debug/env-check', methods=['GET'])
+def check_environment():
+    """Verifica el estado de las variables de entorno"""
+    if 'user_id' not in login_session:
+        return jsonify({'error': 'No autorizado'}), 401
+    
+    env_status = {
+        'GROQ_API_KEY': {
+            'present': bool(os.getenv('GROQ_API_KEY')),
+            'length': len(os.getenv('GROQ_API_KEY', '')),
+            'preview': (os.getenv('GROQ_API_KEY', '')[:8] + '...' if os.getenv('GROQ_API_KEY') else 'No encontrada')
+        },
+        'GROQ_MODEL': os.getenv('GROQ_MODEL', 'No configurado'),
+        'GROQ_TEMPERATURE': os.getenv('GROQ_TEMPERATURE', 'No configurado'),
+        'GROQ_MAX_TOKENS': os.getenv('GROQ_MAX_TOKENS', 'No configurado'),
+        'other_vars': {
+            'NOMBRE': bool(os.getenv('NOMBRE')),
+            'LIMITACIONES': bool(os.getenv('LIMITACIONES')),
+            'ROL_IA_ALUMNOS': bool(os.getenv('ROL_IA_ALUMNOS')),
+            'ROL_IA_PROFESORES': bool(os.getenv('ROL_IA_PROFESORES'))
+        }
+    }
+    
+    return jsonify(env_status)
