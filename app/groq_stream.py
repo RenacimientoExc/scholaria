@@ -18,7 +18,7 @@ class ChatIA_Universal:
     def _initialize_groq(self):
         """Inicializa el cliente de Groq"""
         try:
-            api_key = os.getenv('GROQ_API_KEY, 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')
+            api_key = ('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')
             if not api_key:
                 logger.error("GROQ_API_KEY no encontrada en variables de entorno")
                 return False
@@ -573,3 +573,4 @@ class ChatIA_Universal:
 # Instancia global del chat IA universal
 
 chat_ia_universal = ChatIA_Universal()
+
