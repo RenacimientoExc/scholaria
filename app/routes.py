@@ -4099,94 +4099,6 @@ def alumno_panel():
 #======================================
 #          RUTAS DE LA IA
 #======================================
-@routes.route('/chat')
-def chat_index():
-    """Página principal del chat para cualquier usuario autenticado"""
-    if 'user_id' not in login_session:
-        return redirect(url_for('routes.login'))
-    
-    user = Usuario.query.get(login_session['user_id'])
-    if not user:
-        flash("Usuario no encontrado", "error")
-        return redirect(url_for('routes.login'))
-    
-    # Obtener chats existentes
-    chats = chat_ia_universal.obtener_chats_usuario(user.id)
-    
-    # Determinar el template según el rol
-    template_name = 'profesor_chat.html' if user.rol == RolUsuario.PROFESOR else 'alumno_chat.html'
-    
-    return render_template(template_name, 
-                         chats=chats, 
-                         user_name=user.nombre,
-                         user_role=user.rol.value if hasattr(user.rol, 'value') else str(user.rol))
-
-@routes.route('/chat/nuevo', methods=['POST'])
-def crear_chat():
-    """Crea un nuevo chat para cualquier usuario"""
-    if 'user_id' not in login_session:
-        return jsonify({'error': 'No autorizado'}), 401
-    
-    user = Usuario.query.get(login_session['user_id'])
-    if not user:
-        return jsonify({'error': 'Usuario no encontrado'}), 404
-    
-    try:
-        data = request.get_json()
-        nombre_chat = data.get('nombre', '') if data else ''
-        
-        chat = chat_ia_universal.crear_chat(user.id, nombre_chat)
-        
-        if chat:
-            return jsonify({
-                'success': True,
-                'chat_id': chat.id,
-                'nombre': chat.nombre_chat
-            })
-        else:
-            return jsonify({'error': 'Error creando chat'}), 500
-            
-    except Exception as e:
-        logger.error(f"Error en crear_chat: {e}")
-        return jsonify({'error': 'Error interno'}), 500
-
-@routes.route('/chat/<int:chat_id>')
-def ver_chat(chat_id):
-    """Ver un chat específico para cualquier usuario"""
-    if 'user_id' not in login_session:
-        return redirect(url_for('routes.login'))
-    
-    user = Usuario.query.get(login_session['user_id'])
-    if not user:
-        flash("Usuario no encontrado", "error")
-        return redirect(url_for('routes.login'))
-    
-    # Verificar que el chat pertenece al usuario
-    chat = ChatIA.query.filter_by(
-        id=chat_id, 
-        usuario_id=user.id
-    ).first()
-    
-    if not chat:
-        flash("Chat no encontrado", "error")
-        return redirect(url_for('routes.chat_index'))
-    
-    # Obtener mensajes del chat
-    mensajes = chat_ia_universal.obtener_mensajes_chat(chat_id)
-    
-    # Obtener todos los chats para el sidebar
-    chats = chat_ia_universal.obtener_chats_usuario(user.id)
-    
-    # Determinar el template según el rol
-    template_name = 'profesor_chat.html' if user.rol == RolUsuario.PROFESOR else 'alumno_chat.html'
-    
-    return render_template(template_name, 
-                         chats=chats,
-                         chat_actual=chat,
-                         mensajes=mensajes,
-                         user_name=user.nombre,
-                         user_role=user.rol.value if hasattr(user.rol, 'value') else str(user.rol))
-
 @routes.route('/chat/<int:chat_id>/mensaje', methods=['POST'])
 def enviar_mensaje(chat_id):
     """Envía un mensaje en el chat para cualquier usuario"""
@@ -4249,7 +4161,6 @@ def enviar_mensaje(chat_id):
         logger.error(f"Error enviando mensaje: {e}", exc_info=True)
         return jsonify({'error': f'Error interno: {str(e)}'}), 500
 
-# Endpoint para verificar y reinicializar el servicio
 @routes.route('/api/chat-ia/status', methods=['GET'])
 def get_chat_ia_status():
     """Obtiene el estado del servicio de chat IA"""
@@ -4265,9 +4176,9 @@ def reinitialize_chat_ia():
     if 'user_id' not in login_session:
         return jsonify({'error': 'No autorizado'}), 401
     
-    # Solo permitir a administradores (opcional)
+    # Verificar permisos (opcional - solo profesores)
     user = Usuario.query.get(login_session['user_id'])
-    if not user or user.rol not in [RolUsuario.PROFESOR]:  # Ajusta según tu lógica
+    if not user or user.rol != RolUsuario.PROFESOR:
         return jsonify({'error': 'No autorizado para esta acción'}), 403
     
     success = chat_ia_universal.reinitialize()
@@ -4278,51 +4189,150 @@ def reinitialize_chat_ia():
         'status': status
     })
 
-@routes.route('/chat/<int:chat_id>/eliminar', methods=['DELETE'])
-def eliminar_chat(chat_id):
-    """Elimina un chat para cualquier usuario"""
+@routes.route('/debug/env-check', methods=['GET'])
+def check_environment():
+    """Verifica el estado de las variables de entorno (solo para debugging)"""
     if 'user_id' not in login_session:
         return jsonify({'error': 'No autorizado'}), 401
     
+    # Solo permitir en modo debug o para profesores
     user = Usuario.query.get(login_session['user_id'])
-    if not user:
-        return jsonify({'error': 'Usuario no encontrado'}), 404
+    if not user or user.rol != RolUsuario.PROFESOR:
+        return jsonify({'error': 'No autorizado'}), 403
+    
+    env_status = {
+        'GROQ_API_KEY': {
+            'present': bool(os.getenv('GROQ_API_KEY')),
+            'length': len(os.getenv('GROQ_API_KEY', '')),
+            'preview': (os.getenv('GROQ_API_KEY', '')[:8] + '...' if os.getenv('GROQ_API_KEY') else 'No encontrada')
+        },
+        'GROQ_MODEL': os.getenv('GROQ_MODEL', 'No configurado'),
+        'GROQ_TEMPERATURE': os.getenv('GROQ_TEMPERATURE', 'No configurado'),
+        'GROQ_MAX_TOKENS': os.getenv('GROQ_MAX_TOKENS', 'No configurado'),
+        'other_vars': {
+            'NOMBRE': bool(os.getenv('NOMBRE')),
+            'LIMITACIONES': bool(os.getenv('LIMITACIONES')),
+            'ROL_IA_ALUMNOS': bool(os.getenv('ROL_IA_ALUMNOS')),
+            'ROL_IA_PROFESORES': bool(os.getenv('ROL_IA_PROFESORES'))
+        },
+        'chat_ia_status': chat_ia_universal.get_status()
+    }
+    
+    return jsonify(env_status)
+
+# Endpoints adicionales para gestión de chats
+@routes.route('/chats', methods=['GET'])
+def obtener_chats():
+    """Obtiene todos los chats del usuario actual"""
+    if 'user_id' not in login_session:
+        return jsonify({'error': 'No autorizado'}), 401
     
     try:
-        success = chat_ia_universal.eliminar_chat(chat_id, user.id)
+        chats = chat_ia_universal.obtener_chats_usuario(login_session['user_id'])
+        chats_data = []
+        
+        for chat in chats:
+            chats_data.append({
+                'id': chat.id,
+                'nombre_chat': chat.nombre_chat,
+                'fecha_creacion': chat.fecha_creacion.isoformat() if chat.fecha_creacion else None,
+                'fecha_ultimo_mensaje': chat.fecha_ultimo_mensaje.isoformat() if chat.fecha_ultimo_mensaje else None
+            })
+        
+        return jsonify({'chats': chats_data})
+        
+    except Exception as e:
+        logger.error(f"Error obteniendo chats: {e}")
+        return jsonify({'error': 'Error obteniendo chats'}), 500
+
+@routes.route('/chat', methods=['POST'])
+def crear_chat():
+    """Crea un nuevo chat"""
+    if 'user_id' not in login_session:
+        return jsonify({'error': 'No autorizado'}), 401
+    
+    try:
+        data = request.get_json() if request.is_json else {}
+        nombre_chat = data.get('nombre_chat', None)
+        
+        chat = chat_ia_universal.crear_chat(login_session['user_id'], nombre_chat)
+        
+        if chat:
+            return jsonify({
+                'success': True,
+                'chat': {
+                    'id': chat.id,
+                    'nombre_chat': chat.nombre_chat,
+                    'fecha_creacion': chat.fecha_creacion.isoformat()
+                }
+            })
+        else:
+            return jsonify({'error': 'Error creando chat'}), 500
+            
+    except Exception as e:
+        logger.error(f"Error creando chat: {e}")
+        return jsonify({'error': 'Error interno'}), 500
+
+@routes.route('/chat/<int:chat_id>/mensajes', methods=['GET'])
+def obtener_mensajes(chat_id):
+    """Obtiene todos los mensajes de un chat"""
+    if 'user_id' not in login_session:
+        return jsonify({'error': 'No autorizado'}), 401
+    
+    try:
+        # Verificar que el chat pertenece al usuario
+        chat = ChatIA.query.filter_by(id=chat_id, usuario_id=login_session['user_id']).first()
+        if not chat:
+            return jsonify({'error': 'Chat no encontrado'}), 404
+        
+        mensajes = chat_ia_universal.obtener_mensajes_chat(chat_id)
+        
+        return jsonify({'mensajes': mensajes})
+        
+    except Exception as e:
+        logger.error(f"Error obteniendo mensajes: {e}")
+        return jsonify({'error': 'Error obteniendo mensajes'}), 500
+
+@routes.route('/chat/<int:chat_id>', methods=['DELETE'])
+def eliminar_chat(chat_id):
+    """Elimina un chat"""
+    if 'user_id' not in login_session:
+        return jsonify({'error': 'No autorizado'}), 401
+    
+    try:
+        success = chat_ia_universal.eliminar_chat(chat_id, login_session['user_id'])
         
         if success:
             return jsonify({'success': True})
         else:
-            return jsonify({'error': 'Chat no encontrado'}), 404
+            return jsonify({'error': 'Chat no encontrado o no autorizado'}), 404
             
     except Exception as e:
         logger.error(f"Error eliminando chat: {e}")
         return jsonify({'error': 'Error interno'}), 500
 
-@routes.route('/chat/<int:chat_id>/renombrar', methods=['PUT'])
+@routes.route('/chat/<int:chat_id>/nombre', methods=['PUT'])
 def renombrar_chat(chat_id):
-    """Renombra un chat para cualquier usuario"""
+    """Renombra un chat"""
     if 'user_id' not in login_session:
         return jsonify({'error': 'No autorizado'}), 401
     
-    user = Usuario.query.get(login_session['user_id'])
-    if not user:
-        return jsonify({'error': 'Usuario no encontrado'}), 404
-    
     try:
+        if not request.is_json:
+            return jsonify({'error': 'Content-Type debe ser application/json'}), 400
+        
         data = request.get_json()
-        nuevo_nombre = data.get('nombre', '').strip()
+        nuevo_nombre = data.get('nombre_chat', '').strip()
         
         if not nuevo_nombre:
             return jsonify({'error': 'Nombre vacío'}), 400
         
-        success = chat_ia_universal.renombrar_chat(chat_id, user.id, nuevo_nombre)
+        success = chat_ia_universal.renombrar_chat(chat_id, login_session['user_id'], nuevo_nombre)
         
         if success:
             return jsonify({'success': True})
         else:
-            return jsonify({'error': 'Chat no encontrado'}), 404
+            return jsonify({'error': 'Chat no encontrado o no autorizado'}), 404
             
     except Exception as e:
         logger.error(f"Error renombrando chat: {e}")
