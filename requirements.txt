@@ -25,7 +25,7 @@ rarfile==4.2
 py7zr==0.21.0
 
 # Video and audio processing
-moviepy2==1.0.3   # última versión estable (no hay más recientes)
+moviepy==1.0.3   # última versión estable (no hay más recientes)
 
 # Speech recognition
 SpeechRecognition==3.10.4
