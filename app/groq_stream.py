@@ -16,18 +16,15 @@ class ChatIA_Universal:
         self._initialize_groq()
     
     def _initialize_groq(self):
-        """Inicializa el cliente de Groq"""
+        """Inicializa el cliente de Groq con mejor manejo de errores"""
         try:
+            # 1. Verificar API Key
             api_key = os.getenv('GROQ_API_KEY')
             if not api_key:
-                logger.error("GROQ_API_KEY no encontrada en variables de entorno")
+                error_msg = "GROQ_API_KEY no encontrada en variables de entorno"
+                logger.error(error_msg)
+                self.initialization_error = error_msg
                 return False
-            
-            self.client = Groq(api_key=api_key)
-            return True
-        except Exception as e:
-            logger.error(f"Error inicializando Groq: {e}")
-            return False
     
     def _get_env_vars(self) -> Dict[str, str]:
         """Obtiene las variables de entorno necesarias para el prompt"""
@@ -572,3 +569,4 @@ class ChatIA_Universal:
 
 # Instancia global del chat IA universal
 chat_ia_universal = ChatIA_Universal()
+
