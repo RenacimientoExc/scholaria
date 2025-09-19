@@ -4190,122 +4190,93 @@ def ver_chat(chat_id):
 @routes.route('/chat/<int:chat_id>/mensaje', methods=['POST'])
 def enviar_mensaje(chat_id):
     """Envía un mensaje en el chat para cualquier usuario"""
-    logger.info(f"=== INICIO enviar_mensaje - Chat ID: {chat_id} ===")
-    
     if 'user_id' not in login_session:
-        logger.warning("Usuario no autenticado")
         return jsonify({'error': 'No autorizado'}), 401
     
-    user_id = login_session['user_id']
-    logger.info(f"Usuario autenticado: {user_id}")
-    
-    user = Usuario.query.get(user_id)
+    user = Usuario.query.get(login_session['user_id'])
     if not user:
-        logger.error(f"Usuario {user_id} no encontrado en BD")
         return jsonify({'error': 'Usuario no encontrado'}), 404
     
-    logger.info(f"Usuario encontrado: {user.nombre} - Rol: {user.rol}")
-    
     try:
-        # Debug del request
-        logger.info(f"Content-Type: {request.content_type}")
-        logger.info(f"Request method: {request.method}")
-        logger.info(f"Request headers: {dict(request.headers)}")
-        
         # Verificar JSON
         if not request.is_json:
-            logger.error("Request no es JSON")
             return jsonify({'error': 'Content-Type debe ser application/json'}), 400
         
         data = request.get_json()
         if data is None:
-            logger.error("No se pudo parsear JSON")
             return jsonify({'error': 'JSON inválido'}), 400
         
-        logger.info(f"Datos recibidos: {data}")
-        
         contenido = data.get('contenido', '').strip()
-        
         if not contenido:
-            logger.warning("Mensaje vacío")
             return jsonify({'error': 'Mensaje vacío'}), 400
         
-        logger.info(f"Contenido del mensaje: {contenido[:100]}...")
-        
         # Verificar estado del cliente IA
-        logger.info(f"Cliente IA inicializado: {chat_ia_universal.client is not None}")
-        if not chat_ia_universal.client:
-            logger.error("Cliente de Groq no inicializado")
-            return jsonify({'error': 'Servicio de IA no disponible'}), 503
+        if not chat_ia_universal.is_available():
+            logger.warning("Cliente de Groq no disponible, intentando reinicializar...")
+            
+            # Intentar reinicializar
+            if not chat_ia_universal.reinitialize():
+                status = chat_ia_universal.get_status()
+                error_detail = status.get('initialization_error', 'Error desconocido')
+                
+                return jsonify({
+                    'error': 'Servicio de IA no disponible',
+                    'details': error_detail,
+                    'suggestions': [
+                        'Verifica que GROQ_API_KEY esté configurada correctamente',
+                        'Asegúrate de tener conexión a internet',
+                        'La API key debe ser válida y activa'
+                    ]
+                }), 503
         
-        # Verificar variables de entorno críticas
-        api_key_presente = bool(os.getenv('GROQ_API_KEY'))
-        logger.info(f"GROQ_API_KEY presente: {api_key_presente}")
+        # Verificar que el chat existe y pertenece al usuario
+        chat = ChatIA.query.filter_by(id=chat_id, usuario_id=user.id).first()
+        if not chat:
+            return jsonify({'error': 'Chat no encontrado o no autorizado'}), 404
         
-        # Verificar chat
-        try:
-            chat = ChatIA.query.filter_by(id=chat_id, usuario_id=user.id).first()
-            if not chat:
-                logger.error(f"Chat {chat_id} no encontrado para usuario {user.id}")
-                return jsonify({'error': 'Chat no encontrado o no autorizado'}), 404
-            logger.info(f"Chat encontrado: {chat.nombre_chat}")
-        except Exception as db_error:
-            logger.error(f"Error consultando chat: {db_error}")
-            return jsonify({'error': 'Error de base de datos'}), 500
-        
-        # Intentar enviar mensaje
-        logger.info("Llamando a chat_ia_universal.enviar_mensaje...")
+        # Enviar mensaje
         success, respuesta = chat_ia_universal.enviar_mensaje(chat_id, contenido, user)
         
-        logger.info(f"Resultado enviar_mensaje - Success: {success}")
-        logger.info(f"Respuesta obtenida: {str(respuesta)[:200]}...")
-        
         if success:
-            logger.info("Mensaje enviado exitosamente")
             return jsonify({
                 'success': True,
                 'respuesta': respuesta
             })
         else:
-            logger.error(f"Error en enviar_mensaje: {respuesta}")
-            return jsonify({'error': respuesta or 'Error desconocido'}), 500
+            return jsonify({'error': respuesta}), 500
             
     except Exception as e:
-        logger.error(f"Error inesperado: {str(e)}", exc_info=True)
+        logger.error(f"Error enviando mensaje: {e}", exc_info=True)
         return jsonify({'error': f'Error interno: {str(e)}'}), 500
-    
-    finally:
-        logger.info("=== FIN enviar_mensaje ===")
 
-# También añadir un endpoint de diagnóstico
-@routes.route('/debug/chat-ia-status', methods=['GET'])
-def debug_chat_ia_status():
-    """Endpoint para diagnosticar el estado del sistema de chat IA"""
+# Endpoint para verificar y reinicializar el servicio
+@routes.route('/api/chat-ia/status', methods=['GET'])
+def get_chat_ia_status():
+    """Obtiene el estado del servicio de chat IA"""
     if 'user_id' not in login_session:
         return jsonify({'error': 'No autorizado'}), 401
     
-    status = {
-        'groq_client_initialized': chat_ia_universal.client is not None,
-        'groq_api_key_present': bool(os.getenv('GROQ_API_KEY')),
-        'groq_model': os.getenv('GROQ_MODEL', 'No configurado'),
-        'database_accessible': False,
-        'environment_vars': {}
-    }
-    
-    # Verificar base de datos
-    try:
-        test_count = Usuario.query.count()
-        status['database_accessible'] = True
-        status['users_count'] = test_count
-    except Exception as e:
-        status['database_error'] = str(e)
-    
-    # Variables de entorno (sin mostrar valores sensibles)
-    env_vars = ['NOMBRE', 'LIMITACIONES', 'ROL_IA_ALUMNOS', 'ROL_IA_PROFESORES', 'EDAD_REGULACION']
-    for var in env_vars:
-        status['environment_vars'][var] = bool(os.getenv(var))
-    
+    status = chat_ia_universal.get_status()
     return jsonify(status)
+
+@routes.route('/api/chat-ia/reinitialize', methods=['POST'])
+def reinitialize_chat_ia():
+    """Reinicializa el servicio de chat IA"""
+    if 'user_id' not in login_session:
+        return jsonify({'error': 'No autorizado'}), 401
+    
+    # Solo permitir a administradores (opcional)
+    user = Usuario.query.get(login_session['user_id'])
+    if not user or user.rol not in [RolUsuario.PROFESOR]:  # Ajusta según tu lógica
+        return jsonify({'error': 'No autorizado para esta acción'}), 403
+    
+    success = chat_ia_universal.reinitialize()
+    status = chat_ia_universal.get_status()
+    
+    return jsonify({
+        'success': success,
+        'status': status
+    })
 
 @routes.route('/chat/<int:chat_id>/eliminar', methods=['DELETE'])
 def eliminar_chat(chat_id):
@@ -4356,29 +4327,3 @@ def renombrar_chat(chat_id):
     except Exception as e:
         logger.error(f"Error renombrando chat: {e}")
         return jsonify({'error': 'Error interno'}), 500
-
-
-@routes.route('/debug/env-check', methods=['GET'])
-def check_environment():
-    """Verifica el estado de las variables de entorno"""
-    if 'user_id' not in login_session:
-        return jsonify({'error': 'No autorizado'}), 401
-    
-    env_status = {
-        'GROQ_API_KEY': {
-            'present': bool(os.getenv('GROQ_API_KEY')),
-            'length': len(os.getenv('GROQ_API_KEY', '')),
-            'preview': (os.getenv('GROQ_API_KEY', '')[:8] + '...' if os.getenv('GROQ_API_KEY') else 'No encontrada')
-        },
-        'GROQ_MODEL': os.getenv('GROQ_MODEL', 'No configurado'),
-        'GROQ_TEMPERATURE': os.getenv('GROQ_TEMPERATURE', 'No configurado'),
-        'GROQ_MAX_TOKENS': os.getenv('GROQ_MAX_TOKENS', 'No configurado'),
-        'other_vars': {
-            'NOMBRE': bool(os.getenv('NOMBRE')),
-            'LIMITACIONES': bool(os.getenv('LIMITACIONES')),
-            'ROL_IA_ALUMNOS': bool(os.getenv('ROL_IA_ALUMNOS')),
-            'ROL_IA_PROFESORES': bool(os.getenv('ROL_IA_PROFESORES'))
-        }
-    }
-    
-    return jsonify(env_status)
