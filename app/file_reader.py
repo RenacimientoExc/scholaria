@@ -8,7 +8,6 @@ import docx
 import pytesseract
 from PIL import Image
 from pptx import Presentation
-from moviepy import VideoFileClip, AudioFileClip, CompositeVideoClip
 import speech_recognition as sr
 
 def procesar_archivo(filepath):
@@ -68,15 +67,6 @@ def extraer_powerpoint(filepath):
     return text.strip()
 
 
-def extraer_audio_video(filepath):
-    video = VideoFileClip(filepath)
-    audio_path = filepath + "_temp_audio.wav"
-    video.audio.write_audiofile(audio_path, logger=None)
-    texto = extraer_audio(audio_path)
-    os.remove(audio_path)
-    return texto
-
-
 def extraer_audio(filepath):
     recognizer = sr.Recognizer()
     with sr.AudioFile(filepath) as source:
@@ -116,3 +106,4 @@ def extraer_archivo_comprimido(filepath):
             except Exception:
                 texto += f"\n[No se pudo procesar {file}]\n"
     return texto.strip()
+
