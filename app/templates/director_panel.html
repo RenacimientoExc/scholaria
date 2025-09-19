@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel del Director - {{ institucion.nombre }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --success-gradient: linear-gradient(135deg, #56ab2f 0%, #a8e6cf 100%);
+            --warning-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --info-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            --danger-gradient: linear-gradient(135deg, #ff416c 0%, #ff4b2b 100%);
+        }
+        
+        .director-header {
+            background: var(--primary-gradient);
+            color: white;
+            padding: 2rem 0;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .director-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="2" fill="rgba(255,255,255,0.1)"/></svg>') repeat;
+            opacity: 0.5;
+        }
+        
+        .director-header .container {
+            position: relative;
+            z-index: 2;
+        }
+        
+        .card {
+            border: none;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.08);
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+        
+        .card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 25px 45px rgba(0,0,0,0.15);
+        }
+        
+        .stat-card {
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--primary-gradient);
+        }
+        
+        .stat-icon {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+            font-size: 2rem;
+            color: white;
+        }
+        
+        .stat-icon.users { background: var(--success-gradient); }
+        .stat-icon.courses { background: var(--info-gradient); }
+        .stat-icon.analytics { background: var(--warning-gradient); }
+        .stat-icon.settings { background: var(--primary-gradient); }
+        
+        .quick-action-card {
+            background: white;
+            border-radius: 20px;
+            padding: 1.5rem;
+            text-decoration: none;
+            color: inherit;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+        
+        .quick-action-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            color: inherit;
+            text-decoration: none;
+        }
+        
+        .quick-action-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
+            margin-bottom: 1rem;
+        }
+        
+        .institution-info {
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            padding: 1.5rem;
+            backdrop-filter: blur(10px);
+        }
+        
+        .institution-logo {
+            width: 80px;
+            height: 80px;
+            border-radius: 15px;
+            object-fit: cover;
+            border: 3px solid rgba(255,255,255,0.3);
+        }
+        
+        .btn-primary {
+            background: var(--primary-gradient);
+            border: none;
+            border-radius: 50px;
+            padding: 0.8rem 2rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+        }
+        
+        .recent-activity {
+            background: #f8f9ff;
+            border-radius: 15px;
+            padding: 1.5rem;
+        }
+        
+        .activity-item {
+            display: flex;
+            align-items: center;
+            padding: 1rem;
+            border-radius: 10px;
+            margin-bottom: 0.5rem;
+            background: white;
+            border-left: 4px solid #667eea;
+        }
+        
+        .activity-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--primary-gradient);
+            color: white;
+            margin-right: 1rem;
+        }
+
+        .alert-custom {
+            border: none;
+            border-radius: 15px;
+            padding: 1rem 1.5rem;
+            margin-bottom: 1rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .alert-info { background: linear-gradient(135deg, rgba(79, 172, 254, 0.1) 0%, rgba(0, 242, 254, 0.1) 100%); border-left: 4px solid #4facfe; }
+        .alert-warning { background: linear-gradient(135deg, rgba(240, 147, 251, 0.1) 0%, rgba(245, 87, 108, 0.1) 100%); border-left: 4px solid #f093fb; }
+        .alert-danger { background: linear-gradient(135deg, rgba(255, 65, 108, 0.1) 0%, rgba(255, 75, 43, 0.1) 100%); border-left: 4px solid #ff416c; }
+        
+        @media (max-width: 768px) {
+            .director-header {
+                padding: 1.5rem 0;
+            }
+            
+            .stat-card {
+                padding: 1.5rem;
+                margin-bottom: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header del Director -->
+    <div class="director-header">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <div class="d-flex align-items-center">
+                        {% if institucion.logo_grande %}
+                            <img src="{{ url_for('routes.serve_logo', filename=institucion.logo_grande) }}" 
+                                 class="institution-logo me-4" 
+                                 alt="Logo {{ institucion.nombre }}">
+                        {% else %}
+                            <div class="institution-logo me-4 d-flex align-items-center justify-content-center bg-white text-primary">
+                                <i class="fas fa-university fa-2x"></i>
+                            </div>
+                        {% endif %}
+                        <div>
+                            <h1 class="mb-0">Panel del Director</h1>
+                            <h4 class="mb-1 opacity-75">{{ institucion.nombre }}</h4>
+                            <p class="mb-0 opacity-75">
+                                <i class="fas fa-user-tie me-2"></i>
+                                Bienvenido/a {{ user_name }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 text-end">
+                    <div class="institution-info d-flex align-items-center">
+                        <img src="https://ui-avatars.com/api/?name={{ user_name|replace(' ', '+') }}&background=555&color=fff" 
+                             alt="avatar" 
+                             class="rounded-circle me-4"
+                             style="width: 80px; height: 80px; border: 2px solid rgba(255,255,255,0.3);">
+                        <div class="flex-grow-1 text-end">
+                            <small class="d-block opacity-75">Fecha de Creación</small>
+                            <strong>{{ institucion.fecha_creacion.strftime('%d/%m/%Y') if institucion.fecha_creacion else 'N/A' }}</strong>
+                            <div class="mt-2">
+                                <form method="POST" action="{{ url_for('routes.logout') }}" style="display: inline;">
+                                    <button type="submit" class="btn btn-outline-light btn-sm">
+                                        <i class="fas fa-sign-out-alt me-1"></i>Cerrar Sesión
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contenido Principal -->
+    <div class="container mt-4">
+        <!-- Mensajes Flash -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ 'success' if category == 'success' else 'danger' if category == 'error' else 'warning' }} alert-dismissible fade show" role="alert">
+                        <i class="fas fa-{{ 'check-circle' if category == 'success' else 'exclamation-triangle' if category == 'error' else 'info-circle' }} me-2"></i>
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <!-- Alertas del Sistema -->
+        {% if alertas %}
+        <div class="row mb-4">
+            <div class="col-12">
+                <h5 class="mb-3"><i class="fas fa-exclamation-triangle me-2 text-warning"></i>Notificaciones</h5>
+                {% for alerta in alertas %}
+                <div class="alert-custom alert-{{ alerta.tipo }}">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span>
+                            <i class="fas fa-{{ 'info-circle' if alerta.tipo == 'info' else 'exclamation-triangle' if alerta.tipo == 'warning' else 'exclamation-circle' }} me-2"></i>
+                            {{ alerta.mensaje }}
+                        </span>
+                        {% if alerta.accion %}
+                        <small class="text-muted">{{ alerta.accion }}</small>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Estadísticas Principales -->
+        <div class="row mb-4">
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="stat-card">
+                    <div class="stat-icon users">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <h3 class="mb-1">{{ total_usuarios_activos }}</h3>
+                    <p class="text-muted mb-0">Usuarios Activos</p>
+                    <small class="text-muted">
+                        {{ estadisticas_detalladas.usuarios_por_rol.profesores }} Prof, 
+                        {{ estadisticas_detalladas.usuarios_por_rol.alumnos }} Alum, 
+                        {{ estadisticas_detalladas.usuarios_por_rol.tutores }} Tut, 
+                        {{ estadisticas_detalladas.usuarios_por_rol.padres }} Padres
+                    </small>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="stat-card">
+                    <div class="stat-icon courses">
+                        <i class="fas fa-graduation-cap"></i>
+                    </div>
+                    <h3 class="mb-1">{{ total_cursos_activos }}</h3>
+                    <p class="text-muted mb-0">Cursos Activos</p>
+                    <small class="text-muted">{{ total_materias_activas }} materias totales</small>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="stat-card">
+                    <div class="stat-icon analytics">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h3 class="mb-1">{{ interacciones_ia_mes }}</h3>
+                    <p class="text-muted mb-0">Interacciones IA</p>
+                    <small class="text-muted">Este mes (≈{{ estadisticas_detalladas.interacciones_ia.promedio_diario }}/día)</small>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="stat-card">
+                    <div class="stat-icon settings">
+                        <i class="fas fa-cogs"></i>
+                    </div>
+                    <h3 class="mb-1">
+                        {% if configuracion_ia_completa %}
+                            <span class="text-success">✓</span>
+                        {% else %}
+                            <span class="text-warning">✗</span>
+                        {% endif %}
+                    </h3>
+                    <p class="text-muted mb-0">Configuración IA</p>
+                    <small class="text-muted">
+                        {% if configuracion_ia_completa %}
+                            Sistema configurado
+                        {% else %}
+                            Configuración incompleta
+                        {% endif %}
+                    </small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Acciones Rápidas -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <h4 class="mb-3">
+                    <i class="fas fa-bolt me-2 text-primary"></i>Acciones Rápidas
+                </h4>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-3">
+                <a href="{{ url_for('routes.director_users', institution_id=institucion.id) }}" class="quick-action-card">
+                    <div class="quick-action-icon users">
+                        <i class="fas fa-user-plus"></i>
+                    </div>
+                    <h5 class="mb-2">Gestionar Usuarios</h5>
+                    <p class="text-muted mb-0">Invitar profesores, tutores y gestionar alumnos</p>
+                </a>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-3">
+                <a href="{{ url_for('routes.director_courses', institution_id=institucion.id) }}" class="quick-action-card">
+                    <div class="quick-action-icon courses">
+                        <i class="fas fa-plus-circle"></i>
+                    </div>
+                    <h5 class="mb-2">Gestionar Cursos</h5>
+                    <p class="text-muted mb-0">Crear cursos, materias y asignar profesores</p>
+                </a>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-3">
+                <a href="{{ url_for('routes.director_config', institution_id=institucion.id) }}" class="quick-action-card">
+                    <div class="quick-action-icon settings">
+                        <i class="fas fa-cog"></i>
+                    </div>
+                    <h5 class="mb-2">Configuración IA</h5>
+                    <p class="text-muted mb-0">Valores institucionales y parámetros de IA</p>
+                </a>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-3">
+                <a href="{{ url_for('routes.director_analytics', institution_id=institucion.id) }}" class="quick-action-card">
+                    <div class="quick-action-icon analytics">
+                        <i class="fas fa-chart-bar"></i>
+                    </div>
+                    <h5 class="mb-2">Analíticas</h5>
+                    <p class="text-muted mb-0">Reportes de comprensión y uso del sistema</p>
+                </a>
+            </div>
+        </div>
+
+        <!-- Información Institucional y Actividad Reciente -->
+        <div class="row">
+            <div class="col-lg-8">
+                <div class="card">
+                    <div class="card-header bg-white py-3">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-history me-2 text-primary"></i>Actividad Reciente
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="recent-activity">
+                            {% if actividades_recientes %}
+                                {% for actividad in actividades_recientes %}
+                                <div class="activity-item">
+                                    <div class="activity-icon">
+                                        <i class="fas {{ actividad.icono }}"></i>
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <h6 class="mb-1">{{ actividad.titulo }}</h6>
+                                        <small class="text-muted">{{ actividad.descripcion }}</small>
+                                        <br>
+                                        <small class="text-muted">
+                                            <i class="fas fa-clock me-1"></i>
+                                            {{ actividad.fecha.strftime('%d/%m/%Y %H:%M') }}
+                                        </small>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            {% else %}
+                                <div class="text-center py-3">
+                                    <p class="text-muted mb-0">
+                                        <i class="fas fa-info-circle me-2"></i>
+                                        La actividad reciente aparecerá aquí una vez que comience a usar el sistema
+                                    </p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="card">
+                    <div class="card-header bg-white py-3">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-university me-2 text-primary"></i>Información Institucional
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label class="fw-bold text-muted">Nombre:</label>
+                            <p class="mb-2">{{ institucion.nombre }}</p>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="fw-bold text-muted">Valores Institucionales:</label>
+                            {% if institucion.valores_institucionales %}
+                                <p class="mb-2">{{ institucion.valores_institucionales[:100] }}{% if institucion.valores_institucionales|length > 100 %}...{% endif %}</p>
+                            {% else %}
+                                <p class="mb-2 text-muted fst-italic">
+                                    <a href="{{ url_for('routes.director_config', institution_id=institucion.id) }}" class="text-decoration-none">
+                                        Configurar valores institucionales
+                                    </a>
+                                </p>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="fw-bold text-muted">Metodología Pedagógica:</label>
+                            {% if institucion.metodologia_pedagogica %}
+                                <p class="mb-2">{{ institucion.metodologia_pedagogica[:100] }}{% if institucion.metodologia_pedagogica|length > 100 %}...{% endif %}</p>
+                            {% else %}
+                                <p class="mb-2 text-muted fst-italic">
+                                    <a href="{{ url_for('routes.director_config', institution_id=institucion.id) }}" class="text-decoration-none">
+                                        Configurar metodología pedagógica
+                                    </a>
+                                </p>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="text-center mt-4">
+                            <a href="{{ url_for('routes.director_config', institution_id=institucion.id) }}" class="btn btn-primary">
+                                <i class="fas fa-edit me-2"></i>Editar Configuración
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Agregar animaciones y efectos adicionales
+        document.addEventListener('DOMContentLoaded', function() {
+            // Animar las tarjetas al cargar
+            const cards = document.querySelectorAll('.stat-card, .quick-action-card');
+            cards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                setTimeout(() => {
+                    card.style.transition = 'all 0.6s ease';
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, index * 100);
+            });
+
+            // Actualizar estadísticas cada 30 segundos
+            setInterval(function() {
+                // Aquí podrías hacer una llamada AJAX para actualizar las estadísticas
+                // sin recargar toda la página
+                console.log('Actualizando estadísticas...');
+            }, 30000);
+        });
+    </script>
+</body>
+</html>
