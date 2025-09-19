@@ -16,15 +16,16 @@ python-dotenv==1.0.0
 # AI/ML
 groq==0.4.1
 
-# File processing
-PyMuPDF==1.23.14  # for fitz (PDF processing)
+# PyMuPDF==1.23.26  # Latest version (might work better)
+pymupdf==1.23.26  # Alternative package name
+PyPDF2==3.0.1
 python-docx==1.1.0  # for docx
 python-pptx==0.6.23  # for pptx
 Pillow==10.1.0  # for PIL (Image processing)
 pytesseract==0.3.10  # OCR
 
 # Archive handling
-zipfile36==0.1.3  # Enhanced zipfile support (optional, zipfile is built-in)
+zipfile36==0.1.3 
 rarfile==4.1
 py7zr==0.20.8
 
@@ -34,6 +35,7 @@ SpeechRecognition==3.10.0
 
 # System utilities
 pathlib2==2.3.7  # Enhanced pathlib support (optional, pathlib is built-in)
+
 pyaudio==0.2.11  # for microphone input in speech_recognition
 pocketsphinx==5.0.0  # offline speech recognition engine
 tesseract==0.1.3  # tesseract OCR engine wrapper
