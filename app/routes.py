@@ -279,25 +279,10 @@ def allowed_file(filename):
 
 ALLOWED_EXTENSIONS = {
     # Documentos
-    'pdf', 'txt', 'doc', 'docx', 'odt',
-    
-    # ImÃƒÂ¡genes
-    'png', 'jpg', 'jpeg', 'gif', 'bmp', 'webp',
+    'pdf', 'txt', 'doc', 'docx',
     
     # Presentaciones
-    'ppt', 'pptx', 'odp',
-    
-    # Video
-    'mp4', 'avi', 'mov', 'mkv', 'wmv', 'webm',
-    
-    # Audio
-    'mp3', 'wav', 'ogg', 'flac', 'aac', 'm4a',
-    
-    # Archivos comprimidos
-    'zip', 'rar', '7z',
-    
-    # Otros textos
-    'md', 'csv', 'json',
+    'ppt', 'pptx',
 }
 MAX_FILE_SIZE = 100 * 1024 * 1024
 
