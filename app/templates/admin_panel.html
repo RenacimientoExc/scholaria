@@ -1,0 +1,991 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Administración</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .admin-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem 0;
+        }
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 50px;
+            padding: 0.8rem 2rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        .form-label {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+        .form-control {
+            border: 2px solid #e1e5e9;
+            border-radius: 10px;
+            padding: 0.8rem 1rem;
+            transition: all 0.3s ease;
+        }
+        .form-control:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        }
+        .file-upload-wrapper {
+            position: relative;
+            display: inline-block;
+            width: 100%;
+        }
+        .file-upload-input {
+            position: absolute;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+        .file-upload-label {
+            display: block;
+            padding: 0.8rem 1rem;
+            border: 2px dashed #667eea;
+            border-radius: 10px;
+            text-align: center;
+            background: #f8f9ff;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .file-upload-label:hover {
+            background: #667eea;
+            color: white;
+        }
+        .file-upload-label i {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+        .stats-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .nav-pills .nav-link {
+            border-radius: 50px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin: 0 5px;
+        }
+        
+        .nav-pills .nav-link.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .institution-card {
+            transition: all 0.3s ease;
+        }
+        
+        .institution-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.15);
+        }
+        
+        .institution-logo {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 15px;
+            overflow: hidden;
+            background: #f8f9fa;
+            border: 3px solid #e9ecef;
+        }
+        
+        .institution-logo-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .institution-logo-placeholder {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .institution-logo-placeholder i {
+            font-size: 3rem;
+        }
+        
+        .institution-info {
+            padding: 1rem 0;
+        }
+        
+        .director-info {
+            background: #f8f9ff;
+            padding: 1rem;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .btn-group .btn {
+            border-radius: 20px !important;
+        }
+        
+        .btn-group .btn:first-child {
+            border-top-right-radius: 0 !important;
+            border-bottom-right-radius: 0 !important;
+        }
+        
+        .btn-group .btn:last-child {
+            border-top-left-radius: 0 !important;
+            border-bottom-left-radius: 0 !important;
+        }
+
+        /* Estilos para los modales */
+        .modal-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .modal-header .btn-close {
+            filter: invert(1);
+        }
+        
+        .info-section {
+            background: #f8f9ff;
+            padding: 1rem;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+            margin-bottom: 1rem;
+        }
+        
+        .user-card {
+            border: 1px solid #e9ecef;
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 0.5rem;
+            background: white;
+        }
+        
+        .user-role-badge {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 15px;
+        }
+        
+        .role-ADMIN { background: #dc3545; color: white; }
+        .role-DIRECTOR { background: #6f42c1; color: white; }
+        .role-PROFESOR { background: #0d6efd; color: white; }
+        .role-ALUMNO { background: #198754; color: white; }
+    </style>
+</head>
+<body>
+    <div class="admin-header">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <h1 class="mb-0">
+                        <i class="fas fa-university me-3"></i>Panel de Administración
+                    </h1>
+                    <p class="mb-0 mt-2">Gestión de Instituciones Educativas</p>
+                </div>
+                <div class="col-md-6 text-end">
+                    <div class="d-flex justify-content-end align-items-center">
+                        <span class="me-3">
+                            <i class="fas fa-user-shield me-2"></i>
+                            {% if user_name %}{{ user_name }}{% else %}Administrador{% endif %}
+                        </span>
+                        <form method="POST" action="{{ url_for('routes.logout') }}" style="display: inline;">
+                            <button type="submit" class="btn btn-outline-light btn-sm">
+                                <i class="fas fa-sign-out-alt me-1"></i>Cerrar Sesión
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container mt-4">
+        <!-- Mensajes Flash -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ 'success' if category == 'success' else 'danger' if category == 'error' else 'warning' }} alert-dismissible fade show" role="alert">
+                        <i class="fas fa-{{ 'check-circle' if category == 'success' else 'exclamation-triangle' if category == 'error' else 'info-circle' }} me-2"></i>
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <!-- Estadísticas -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="stats-card">
+                    <div class="row text-center">
+                        <div class="col-md-4">
+                            <i class="fas fa-building fa-2x mb-2"></i>
+                            <h3 class="mb-0">Instituciones</h3>
+                            <p class="mb-0">Sistema Centralizado</p>
+                        </div>
+                        <div class="col-md-4">
+                            <i class="fas fa-users fa-2x mb-2"></i>
+                            <h3 class="mb-0">Directores</h3>
+                            <p class="mb-0">Gestión Educativa</p>
+                        </div>
+                        <div class="col-md-4">
+                            <i class="fas fa-cog fa-2x mb-2"></i>
+                            <h3 class="mb-0">Configuración</h3>
+                            <p class="mb-0">Sistema Integral</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navegación por pestañas -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <ul class="nav nav-pills nav-justified" id="adminTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="institutions-tab" data-bs-toggle="pill" data-bs-target="#institutions" type="button" role="tab">
+                            <i class="fas fa-building me-2"></i>Instituciones Registradas
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="create-tab" data-bs-toggle="pill" data-bs-target="#create" type="button" role="tab">
+                            <i class="fas fa-plus-circle me-2"></i>Crear Nueva Institución
+                        </button>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="tab-content" id="adminTabsContent">
+            <!-- Vista de Instituciones -->
+            <div class="tab-pane fade show active" id="institutions" role="tabpanel">
+                <div class="row" id="institutionsGrid">
+                    <!-- Las instituciones se cargarán aquí vía JavaScript -->
+                    <div class="col-12 text-center py-5">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Cargando...</span>
+                        </div>
+                        <p class="mt-3 text-muted">Cargando instituciones...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Formulario de Creación -->
+            <div class="tab-pane fade" id="create" role="tabpanel">
+                <div class="row justify-content-center">
+                    <div class="col-lg-8">
+                        <div class="card">
+                            <div class="card-header bg-white py-3">
+                                <h4 class="card-title mb-0">
+                                    <i class="fas fa-plus-circle me-2 text-primary"></i>
+                                    Crear Nueva Institución
+                                </h4>
+                                <p class="text-muted mb-0 mt-2">Complete los datos para crear una nueva institución educativa con su director</p>
+                            </div>
+                            <div class="card-body p-4">
+                                <form method="POST" action="{{ url_for('routes.create_institution') }}" enctype="multipart/form-data">
+                                    
+                                    <!-- Datos de la Institución -->
+                                    <div class="row mb-4">
+                                        <div class="col-12">
+                                            <h5 class="text-primary mb-3">
+                                                <i class="fas fa-university me-2"></i>Datos de la Institución
+                                            </h5>
+                                        </div>
+                                    </div>
+
+                                    <div class="row mb-3">
+                                        <div class="col-12">
+                                            <label for="nombre_institucion" class="form-label">
+                                                <i class="fas fa-building me-2"></i>Nombre de la Institución *
+                                            </label>
+                                            <input type="text" 
+                                                   class="form-control" 
+                                                   id="nombre_institucion" 
+                                                   name="nombre_institucion" 
+                                                   required 
+                                                   placeholder="Ej: Colegio San José">
+                                        </div>
+                                    </div>
+
+                                    <!-- Logos -->
+                                    <div class="row mb-4">
+                                        <div class="col-md-6">
+                                            <label for="logo_grande" class="form-label">
+                                                <i class="fas fa-image me-2"></i>Logo Grande (200x200px)
+                                            </label>
+                                            <div class="file-upload-wrapper">
+                                                <input type="file" 
+                                                       class="file-upload-input" 
+                                                       id="logo_grande" 
+                                                       name="logo_grande" 
+                                                       accept="image/*">
+                                                <label for="logo_grande" class="file-upload-label">
+                                                    <i class="fas fa-cloud-upload-alt"></i>
+                                                    <span>Seleccionar logo grande</span>
+                                                    <small class="d-block mt-2 text-muted">PNG, JPG (200x200px recomendado)</small>
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="logo_pequeno" class="form-label">
+                                                <i class="fas fa-image me-2"></i>Logo Pequeño (32x32px)
+                                            </label>
+                                            <div class="file-upload-wrapper">
+                                                <input type="file" 
+                                                       class="file-upload-input" 
+                                                       id="logo_pequeno" 
+                                                       name="logo_pequeno" 
+                                                       accept="image/*">
+                                                <label for="logo_pequeno" class="file-upload-label">
+                                                    <i class="fas fa-cloud-upload-alt"></i>
+                                                    <span>Seleccionar logo pequeño</span>
+                                                    <small class="d-block mt-2 text-muted">PNG, JPG (32x32px recomendado)</small>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Datos del Director -->
+                                    <div class="row mb-4">
+                                        <div class="col-12">
+                                            <h5 class="text-primary mb-3">
+                                                <i class="fas fa-user-tie me-2"></i>Datos del Director
+                                            </h5>
+                                        </div>
+                                    </div>
+
+                                    <div class="row mb-3">
+                                        <div class="col-md-6">
+                                            <label for="nombre_director" class="form-label">
+                                                <i class="fas fa-user me-2"></i>Nombre *
+                                            </label>
+                                            <input type="text" 
+                                                   class="form-control" 
+                                                   id="nombre_director" 
+                                                   name="nombre_director" 
+                                                   required 
+                                                   placeholder="Nombre del director">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="apellido_director" class="form-label">
+                                                <i class="fas fa-user me-2"></i>Apellido *
+                                            </label>
+                                            <input type="text" 
+                                                   class="form-control" 
+                                                   id="apellido_director" 
+                                                   name="apellido_director" 
+                                                   required 
+                                                   placeholder="Apellido del director">
+                                        </div>
+                                    </div>
+
+                                    <div class="row mb-3">
+                                        <div class="col-md-6">
+                                            <label for="email_director" class="form-label">
+                                                <i class="fas fa-envelope me-2"></i>Email *
+                                            </label>
+                                            <input type="email" 
+                                                   class="form-control" 
+                                                   id="email_director" 
+                                                   name="email_director" 
+                                                   required 
+                                                   placeholder="director@institucion.edu">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="fecha_nacimiento_director" class="form-label">
+                                                <i class="fas fa-calendar me-2"></i>Fecha de Nacimiento *
+                                            </label>
+                                            <input type="date" 
+                                                   class="form-control" 
+                                                   id="fecha_nacimiento_director" 
+                                                   name="fecha_nacimiento_director" 
+                                                   required>
+                                        </div>
+                                    </div>
+
+                                    <!-- Información adicional -->
+                                    <div class="alert alert-info d-flex align-items-center mb-4" role="alert">
+                                        <i class="fas fa-info-circle me-3"></i>
+                                        <div>
+                                            <strong>Información:</strong> Se enviará un email de invitación al director para que configure su cuenta y establezca su contraseña. El director podrá configurar posteriormente los valores institucionales, metodología pedagógica y configuraciones de IA.
+                                        </div>
+                                    </div>
+
+                                    <!-- Botones -->
+                                    <div class="row">
+                                        <div class="col-12 text-center">
+                                            <button type="submit" class="btn btn-primary btn-lg me-3">
+                                                <i class="fas fa-plus-circle me-2"></i>
+                                                Crear Institución
+                                            </button>
+                                            <button type="reset" class="btn btn-outline-secondary btn-lg">
+                                                <i class="fas fa-times me-2"></i>
+                                                Limpiar Formulario
+                                            </button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Ver Detalles -->
+    <div class="modal fade" id="viewDetailsModal" tabindex="-1" aria-labelledby="viewDetailsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="viewDetailsModalLabel">
+                        <i class="fas fa-info-circle me-2"></i>Detalles de la Institución
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="institutionDetailsContent">
+                        <div class="text-center py-4">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Cargando...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-1"></i>Cerrar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Editar Director -->
+    <div class="modal fade" id="editDirectorModal" tabindex="-1" aria-labelledby="editDirectorModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editDirectorModalLabel">
+                        <i class="fas fa-edit me-2"></i>Editar Director
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="editDirectorForm">
+                    <div class="modal-body">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="edit_nombre" class="form-label">
+                                    <i class="fas fa-user me-2"></i>Nombre *
+                                </label>
+                                <input type="text" class="form-control" id="edit_nombre" name="nombre" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="edit_apellido" class="form-label">
+                                    <i class="fas fa-user me-2"></i>Apellido *
+                                </label>
+                                <input type="text" class="form-control" id="edit_apellido" name="apellido" required>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="edit_email" class="form-label">
+                                    <i class="fas fa-envelope me-2"></i>Email *
+                                </label>
+                                <input type="email" class="form-control" id="edit_email" name="email" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="edit_fecha_nacimiento" class="form-label">
+                                    <i class="fas fa-calendar me-2"></i>Fecha de Nacimiento *
+                                </label>
+                                <input type="date" class="form-control" id="edit_fecha_nacimiento" name="fecha_nacimiento" required>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-12">
+                                <label for="edit_password" class="form-label">
+                                    <i class="fas fa-lock me-2"></i>Nueva Contraseña
+                                </label>
+                                <input type="password" class="form-control" id="edit_password" name="password" 
+                                       placeholder="Dejar en blanco para mantener la actual">
+                                <small class="form-text text-muted">Solo complete este campo si desea cambiar la contraseña</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            <i class="fas fa-times me-1"></i>Cancelar
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-1"></i>Guardar Cambios
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Variables globales
+        let currentInstitutionId = null;
+
+        // Cargar instituciones al inicio
+        document.addEventListener('DOMContentLoaded', function() {
+            loadInstitutions();
+        });
+
+        // Función para cargar las instituciones
+        async function loadInstitutions() {
+            try {
+                const response = await fetch('/api/institutions');
+                const institutions = await response.json();
+                
+                const grid = document.getElementById('institutionsGrid');
+                
+                if (institutions.length === 0) {
+                    grid.innerHTML = `
+                        <div class="col-12 text-center py-5">
+                            <i class="fas fa-building fa-4x text-muted mb-3"></i>
+                            <h4 class="text-muted">No hay instituciones registradas</h4>
+                            <p class="text-muted">Comience creando su primera institución</p>
+                            <button class="btn btn-primary" onclick="document.getElementById('create-tab').click()">
+                                <i class="fas fa-plus me-2"></i>Crear Primera Institución
+                            </button>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                grid.innerHTML = institutions.map(institution => `
+                    <div class="col-lg-6 col-xl-4 mb-4">
+                        <div class="card institution-card h-100">
+                            <div class="card-body text-center">
+                                <div class="institution-logo mb-3">
+                                    ${institution.logo_grande ? 
+                                        `<img src="/uploads/logos/${institution.logo_grande}" alt="Logo ${institution.nombre}" class="institution-logo-img">` :
+                                        `<div class="institution-logo-placeholder">
+                                            <i class="fas fa-building"></i>
+                                        </div>`
+                                    }
+                                </div>
+                                <h5 class="card-title">${institution.nombre}</h5>
+                                <div class="institution-info">
+                                    <div class="director-info mb-3">
+                                        <h6 class="text-muted mb-1">
+                                            <i class="fas fa-user-tie me-1"></i>Director
+                                        </h6>
+                                        <p class="mb-1"><strong>${institution.director.nombre} ${institution.director.apellido}</strong></p>
+                                        <p class="text-muted small mb-0">
+                                            <i class="fas fa-envelope me-1"></i>${institution.director.email}
+                                        </p>
+                                        <p class="text-muted small mb-0">
+                                            <i class="fas fa-${institution.director.email_confirmado ? 'check-circle text-success' : 'clock text-warning'} me-1"></i>
+                                            ${institution.director.email_confirmado ? 'Email confirmado' : 'Pendiente confirmación'}
+                                        </p>
+                                    </div>
+                                    <div class="institution-meta">
+                                        <small class="text-muted">
+                                            <i class="fas fa-calendar me-1"></i>
+                                            Creada: ${new Date(institution.fecha_creacion).toLocaleDateString('es-ES')}
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-footer bg-transparent border-0 text-center">
+                                <div class="btn-group" role="group">
+                                    <button type="button" class="btn btn-outline-primary btn-sm" onclick="viewInstitution(${institution.id})">
+                                        <i class="fas fa-eye me-1"></i>Ver Detalles
+                                    </button>
+                                    <button type="button" class="btn btn-outline-secondary btn-sm" onclick="editInstitution(${institution.id})">
+                                        <i class="fas fa-edit me-1"></i>Editar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+                
+            } catch (error) {
+                console.error('Error cargando instituciones:', error);
+                document.getElementById('institutionsGrid').innerHTML = `
+                    <div class="col-12 text-center py-5">
+                        <i class="fas fa-exclamation-triangle fa-3x text-warning mb-3"></i>
+                        <h4 class="text-muted">Error al cargar las instituciones</h4>
+                        <p class="text-muted">Intente recargar la página</p>
+                        <button class="btn btn-primary" onclick="loadInstitutions()">
+                            <i class="fas fa-refresh me-2"></i>Reintentar
+                        </button>
+                    </div>
+                `;
+            }
+        }
+
+        // Función para ver detalles de una institución
+        async function viewInstitution(id) {
+            try {
+                const response = await fetch(`/api/institution/${id}`);
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(data.error || 'Error al cargar los detalles');
+                }
+                
+                const content = document.getElementById('institutionDetailsContent');
+                content.innerHTML = `
+                    <div class="row">
+                        <!-- Información básica -->
+                        <div class="col-md-6 mb-4">
+                            <div class="info-section">
+                                <h6 class="fw-bold mb-3">
+                                    <i class="fas fa-building me-2"></i>Información de la Institución
+                                </h6>
+                                <div class="row">
+                                    <div class="col-12 mb-3">
+                                        <div class="text-center">
+                                            <div class="institution-logo mx-auto mb-2" style="width: 100px; height: 100px;">
+                                                ${data.logo_grande ? 
+                                                    `<img src="/uploads/logos/${data.logo_grande}" alt="Logo ${data.nombre}" class="institution-logo-img">` :
+                                                    `<div class="institution-logo-placeholder">
+                                                        <i class="fas fa-building"></i>
+                                                    </div>`
+                                                }
+                                            </div>
+                                            <h5 class="mb-0">${data.nombre}</h5>
+                                        </div>
+                                    </div>
+                                </div>
+                                <table class="table table-sm">
+                                    <tr>
+                                        <td><strong>ID:</strong></td>
+                                        <td>${data.id}</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Fecha de creación:</strong></td>
+                                        <td>${new Date(data.fecha_creacion).toLocaleDateString('es-ES')}</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Logo grande:</strong></td>
+                                        <td>${data.logo_grande || 'No configurado'}</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Logo pequeño:</strong></td>
+                                        <td>${data.logo_pequeno || 'No configurado'}</td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                        
+                        <!-- Información del director -->
+                        <div class="col-md-6 mb-4">
+                            <div class="info-section">
+                                <h6 class="fw-bold mb-3">
+                                    <i class="fas fa-user-tie me-2"></i>Información del Director
+                                </h6>
+                                <table class="table table-sm">
+                                    <tr>
+                                        <td><strong>Nombre completo:</strong></td>
+                                        <td>${data.director.nombre} ${data.director.apellido}</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Email:</strong></td>
+                                        <td>${data.director.email}</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Fecha de nacimiento:</strong></td>
+                                        <td>${data.director.fecha_nacimiento ? new Date(data.director.fecha_nacimiento).toLocaleDateString('es-ES') : 'No especificada'}</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Rol:</strong></td>
+                                        <td><span class="user-role-badge role-${data.director.rol}">${data.director.rol}</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Estado:</strong></td>
+                                        <td>
+                                            <span class="badge ${data.director.activo ? 'bg-success' : 'bg-danger'}">
+                                                ${data.director.activo ? 'Activo' : 'Inactivo'}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Email confirmado:</strong></td>
+                                        <td>
+                                            <span class="badge ${data.director.email_confirmado ? 'bg-success' : 'bg-warning'}">
+                                                ${data.director.email_confirmado ? 'Sí' : 'Pendiente'}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                        
+                        <!-- Configuración institucional -->
+                        <div class="col-12 mb-4">
+                            <div class="info-section">
+                                <h6 class="fw-bold mb-3">
+                                    <i class="fas fa-cogs me-2"></i>Configuración Institucional
+                                </h6>
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <h6 class="text-muted">Valores Institucionales</h6>
+                                        <p class="small">${data.valores_institucionales || 'No configurado'}</p>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <h6 class="text-muted">Metodología Pedagógica</h6>
+                                        <p class="small">${data.metodologia_pedagogica || 'No configurado'}</p>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <h6 class="text-muted">Configuración IA</h6>
+                                        <p class="small">${data.configuracion_ia || 'No configurado'}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Usuarios de la institución -->
+                        <div class="col-12">
+                            <div class="info-section">
+                                <h6 class="fw-bold mb-3">
+                                    <i class="fas fa-users me-2"></i>Usuarios de la Institución (${data.usuarios.length})
+                                </h6>
+                                <div class="row">
+                                    ${data.usuarios.map(usuario => `
+                                        <div class="col-md-6 mb-2">
+                                            <div class="user-card">
+                                                <div class="d-flex justify-content-between align-items-start">
+                                                    <div>
+                                                        <h6 class="mb-1">${usuario.nombre} ${usuario.apellido}</h6>
+                                                        <p class="text-muted small mb-1">
+                                                            <i class="fas fa-envelope me-1"></i>${usuario.email}
+                                                        </p>
+                                                        <p class="text-muted small mb-0">
+                                                            <i class="fas fa-calendar me-1"></i>
+                                                            Nacimiento: ${usuario.fecha_nacimiento ? new Date(usuario.fecha_nacimiento).toLocaleDateString('es-ES') : 'No especificada'}
+                                                        </p>
+                                                    </div>
+                                                    <div class="text-end">
+                                                        <span class="user-role-badge role-${usuario.rol} d-block mb-1">${usuario.rol}</span>
+                                                        <span class="badge ${usuario.activo ? 'bg-success' : 'bg-danger'} d-block mb-1">
+                                                            ${usuario.activo ? 'Activo' : 'Inactivo'}
+                                                        </span>
+                                                        <span class="badge ${usuario.email_confirmado ? 'bg-success' : 'bg-warning'} d-block">
+                                                            ${usuario.email_confirmado ? 'Verificado' : 'Pendiente'}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                const modal = new bootstrap.Modal(document.getElementById('viewDetailsModal'));
+                modal.show();
+                
+            } catch (error) {
+                console.error('Error cargando detalles:', error);
+                alert('Error al cargar los detalles de la institución');
+            }
+        }
+
+        // Función para editar una institución (director)
+        async function editInstitution(id) {
+            try {
+                currentInstitutionId = id;
+                const response = await fetch(`/api/institution/${id}`);
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(data.error || 'Error al cargar los datos');
+                }
+                
+                // Llenar el formulario con los datos actuales
+                document.getElementById('edit_nombre').value = data.director.nombre;
+                document.getElementById('edit_apellido').value = data.director.apellido;
+                document.getElementById('edit_email').value = data.director.email;
+                document.getElementById('edit_fecha_nacimiento').value = data.director.fecha_nacimiento ? data.director.fecha_nacimiento.split('T')[0] : '';
+                document.getElementById('edit_password').value = '';
+                
+                // Actualizar el título del modal
+                document.getElementById('editDirectorModalLabel').innerHTML = `
+                    <i class="fas fa-edit me-2"></i>Editar Director - ${data.nombre}
+                `;
+                
+                const modal = new bootstrap.Modal(document.getElementById('editDirectorModal'));
+                modal.show();
+                
+            } catch (error) {
+                console.error('Error cargando datos para edición:', error);
+                alert('Error al cargar los datos para edición');
+            }
+        }
+
+        // Manejar el envío del formulario de edición - VERSIÓN LIMPIA
+        document.getElementById('editDirectorForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            if (!currentInstitutionId) {
+                alert('Error: ID de institución no encontrado');
+                return;
+            }
+            
+            const submitBtn = this.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Guardando...';
+            submitBtn.disabled = true;
+            
+            try {
+                // Recoger datos del formulario manualmente
+                const nombre = document.getElementById('edit_nombre').value.trim();
+                const apellido = document.getElementById('edit_apellido').value.trim();
+                const email = document.getElementById('edit_email').value.trim();
+                const fecha_nacimiento = document.getElementById('edit_fecha_nacimiento').value;
+                const password = document.getElementById('edit_password').value.trim();
+                
+                // Validaciones básicas
+                if (!nombre || !apellido || !email) {
+                    alert('Nombre, apellido y email son obligatorios');
+                    return;
+                }
+                
+                // Preparar datos para enviar
+                const data = {
+                    nombre: nombre,
+                    apellido: apellido,
+                    email: email
+                };
+                
+                if (fecha_nacimiento) {
+                    data.fecha_nacimiento = fecha_nacimiento;
+                }
+                
+                if (password) {
+                    data.password = password;
+                }
+                
+                console.log('Enviando datos:', data);
+                
+                // Realizar petición
+                const response = await fetch(`/api/institution/${currentInstitutionId}/director`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(result.error || 'Error al actualizar');
+                }
+                
+                // Cerrar modal
+                const modal = bootstrap.Modal.getInstance(document.getElementById('editDirectorModal'));
+                if (modal) {
+                    modal.hide();
+                }
+                
+                // Mostrar mensaje de éxito
+                alert(result.message || 'Director actualizado exitosamente');
+                
+                // Recargar instituciones
+                loadInstitutions();
+                
+            } catch (error) {
+                console.error('Error actualizando director:', error);
+                alert('Error al actualizar: ' + error.message);
+            } finally {
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            }
+        });
+
+        // Mejorar la experiencia de subida de archivos
+        document.querySelectorAll('.file-upload-input').forEach(input => {
+            input.addEventListener('change', function() {
+                const label = this.nextElementSibling;
+                const fileName = this.files[0] ? this.files[0].name : 'Seleccionar archivo';
+                const span = label.querySelector('span');
+                span.textContent = fileName;
+                
+                if (this.files[0]) {
+                    label.style.background = '#e8f5e8';
+                    label.style.borderColor = '#28a745';
+                } else {
+                    label.style.background = '#f8f9ff';
+                    label.style.borderColor = '#667eea';
+                }
+            });
+        });
+
+        // Validación del formulario de creación
+        document.querySelector('form[action*="create_institution"]').addEventListener('submit', function(e) {
+            const requiredFields = this.querySelectorAll('input[required]');
+            let isValid = true;
+            
+            requiredFields.forEach(field => {
+                if (!field.value.trim()) {
+                    field.classList.add('is-invalid');
+                    isValid = false;
+                } else {
+                    field.classList.remove('is-invalid');
+                }
+            });
+            
+            // Validar email
+            const email = document.getElementById('email_director');
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email.value)) {
+                email.classList.add('is-invalid');
+                isValid = false;
+            }
+            
+            if (!isValid) {
+                e.preventDefault();
+                alert('Por favor, complete todos los campos requeridos correctamente.');
+            } else {
+                const submitBtn = this.querySelector('button[type="submit"]');
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Creando...';
+                submitBtn.disabled = true;
+            }
+        });
+    </script>
+</body>
+</html>

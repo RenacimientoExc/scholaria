@@ -1,0 +1,1432 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Usuarios - {{ institucion.nombre }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --success-gradient: linear-gradient(135deg, #56ab2f 0%, #a8e6cf 100%);
+            --warning-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --info-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            --professor-color: #0d6efd;
+            --student-color: #198754;
+            --tutor-color: #6f42c1;
+            --parent-color: #fd7e14;
+        }
+        
+        .users-header {
+            background: var(--primary-gradient);
+            color: white;
+            padding: 2rem 0;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .users-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="2" fill="rgba(255,255,255,0.1)"/></svg>') repeat;
+            opacity: 0.5;
+        }
+        
+        .users-header .container {
+            position: relative;
+            z-index: 2;
+        }
+        
+        .card {
+            border: none;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.08);
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 25px 45px rgba(0,0,0,0.15);
+        }
+        
+        .stat-card {
+            background: white;
+            border-radius: 20px;
+            padding: 1.5rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+        }
+        
+        .stat-card.professors::before { background: var(--professor-color); }
+        .stat-card.students::before { background: var(--student-color); }
+        .stat-card.tutors::before { background: var(--tutor-color); }
+        .stat-card.parents::before { background: var(--parent-color); }
+        
+        .stat-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+            font-size: 1.5rem;
+            color: white;
+        }
+        
+        .stat-icon.professors { background: var(--professor-color); }
+        .stat-icon.students { background: var(--student-color); }
+        .stat-icon.tutors { background: var(--tutor-color); }
+        .stat-icon.parents { background: var(--parent-color); }
+        
+        .user-card {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            border: 2px solid #f1f3f4;
+            transition: all 0.3s ease;
+        }
+        
+        .user-card:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+        
+        .user-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
+            margin-right: 1rem;
+        }
+        
+        .role-badge {
+            font-size: 0.75rem;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .role-PROFESOR { background: var(--professor-color); color: white; }
+        .role-ALUMNO { background: var(--student-color); color: white; }
+        .role-TUTOR { background: var(--tutor-color); color: white; }
+        .role-PADRE, .role-MADRE { background: var(--parent-color); color: white; }
+        
+        .status-badge {
+            font-size: 0.75rem;
+            padding: 0.2rem 0.6rem;
+            border-radius: 15px;
+        }
+        
+        .status-active { background: #d1edff; color: #0969da; }
+        .status-inactive { background: #fff1f3; color: #cf222e; }
+        .status-pending { background: #fff8c5; color: #9a6700; }
+        
+        .btn-primary {
+            background: var(--primary-gradient);
+            border: none;
+            border-radius: 50px;
+            padding: 0.8rem 2rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+        }
+        
+        .btn-back {
+            background: rgba(255,255,255,0.2);
+            border: 2px solid rgba(255,255,255,0.3);
+            color: white;
+            border-radius: 50px;
+            padding: 0.5rem 1.5rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-back:hover {
+            background: rgba(255,255,255,0.3);
+            color: white;
+            transform: translateY(-2px);
+        }
+        
+        .search-box {
+            position: relative;
+        }
+        
+        .search-box input {
+            border: 2px solid #e1e5e9;
+            border-radius: 50px;
+            padding: 1rem 1rem 1rem 3rem;
+            transition: all 0.3s ease;
+        }
+        
+        .search-box input:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        }
+        
+        .search-box .search-icon {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6c757d;
+        }
+        
+        .filter-tabs .nav-link {
+            border-radius: 50px;
+            font-weight: 600;
+            padding: 0.8rem 1.5rem;
+            margin: 0 0.25rem;
+            transition: all 0.3s ease;
+        }
+        
+        .filter-tabs .nav-link.active {
+            background: var(--primary-gradient);
+            color: white;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: #6c757d;
+        }
+        
+        .empty-state i {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.3;
+        }
+        
+        .modal-header {
+            background: var(--primary-gradient);
+            color: white;
+        }
+        
+        .modal-header .btn-close {
+            filter: invert(1);
+        }
+        
+        .form-control, .form-select {
+            border: 2px solid #e1e5e9;
+            border-radius: 15px;
+            padding: 1rem 1.5rem;
+            transition: all 0.3s ease;
+        }
+        
+        .form-control:focus, .form-select:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        }
+
+        .patologia-tag {
+            background: #e3f2fd;
+            color: #1976d2;
+            padding: 0.2rem 0.5rem;
+            border-radius: 10px;
+            font-size: 0.7rem;
+            margin: 0.1rem;
+            display: inline-block;
+        }
+
+        .patologias-selector {
+            border: 2px solid #e1e5e9;
+            border-radius: 15px;
+            padding: 1rem;
+            max-height: 150px;
+            overflow-y: auto;
+        }
+
+        .form-check-input:checked {
+            background-color: #667eea;
+            border-color: #667eea;
+        }
+
+        .export-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .export-btn {
+            background: var(--success-gradient);
+            border: none;
+            color: white;
+            padding: 0.8rem 2rem;
+            border-radius: 50px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(86, 171, 47, 0.3);
+        }
+
+        .export-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(86, 171, 47, 0.4);
+            color: white;
+        }
+
+        .export-menu {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 15px 50px rgba(0,0,0,0.2);
+            z-index: 9999; /* Z-index muy alto para estar por encima de todo */
+            min-width: 200px;
+            padding: 0.5rem 0;
+            margin-top: 0.5rem;
+            display: none;
+            border: 1px solid #e1e5e9;
+        }
+
+        .export-menu.show {
+            display: block;
+        }
+
+        /* Asegurar que el contenedor padre también tenga un z-index apropiado */
+        .export-dropdown.active {
+            z-index: 10000;
+        }
+
+        .export-option {
+            display: block;
+            padding: 0.75rem 1.25rem;
+            color: #333;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border-bottom: 1px solid #f1f3f4;
+        }
+
+        .export-option:hover {
+            background: #f8f9fa;
+            color: #667eea;
+            padding-left: 1.5rem;
+        }
+
+        .export-option:last-child {
+            border-bottom: none;
+        }
+
+        .export-option i {
+            width: 20px;
+            margin-right: 0.75rem;
+        }
+        
+        @media (max-width: 768px) {
+            .users-header {
+                padding: 1.5rem 0;
+            }
+            
+            .stat-card {
+                padding: 1rem;
+                margin-bottom: 1rem;
+            }
+            
+            .user-card {
+                padding: 1rem;
+            }
+
+            .export-dropdown {
+                margin-top: 1rem;
+                width: 100%;
+            }
+
+            .export-btn {
+                width: 100%;
+            }
+
+            .export-menu {
+                left: 0;
+                right: auto;
+                min-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="users-header">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <div class="d-flex align-items-center">
+                        <div class="stat-icon professors me-4">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div>
+                            <h1 class="mb-0">Gestión de Usuarios</h1>
+                            <h4 class="mb-1 opacity-75">{{ institucion.nombre }}</h4>
+                            <p class="mb-0 opacity-75">
+                                <i class="fas fa-user-cog me-2"></i>
+                                Administrar profesores, alumnos, tutores y padres
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 text-end">
+                    <a href="{{ url_for('routes.director_panel', institution_id=institucion.id) }}" class="btn btn-back">
+                        <i class="fas fa-arrow-left me-2"></i>Volver al Panel
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container mt-4">
+        <!-- Mensajes Flash -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ 'success' if category == 'success' else 'danger' if category == 'error' else 'warning' }} alert-dismissible fade show" role="alert">
+                        <i class="fas fa-{{ 'check-circle' if category == 'success' else 'exclamation-triangle' if category == 'error' else 'info-circle' }} me-2"></i>
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <!-- Estadísticas de Usuarios - TODOS los usuarios -->
+        <div class="row mb-4">
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="stat-card professors">
+                    <div class="stat-icon professors">
+                        <i class="fas fa-chalkboard-teacher"></i>
+                    </div>
+                    <h3 class="mb-1">{{ profesores|length }}</h3>
+                    <p class="text-muted mb-0">Profesores</p>
+                    <small class="text-muted">
+                        {{ profesores|selectattr('activo')|list|length }} activos, 
+                        {{ (profesores|length) - (profesores|selectattr('activo')|list|length) }} inactivos
+                    </small>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="stat-card students">
+                    <div class="stat-icon students">
+                        <i class="fas fa-user-graduate"></i>
+                    </div>
+                    <h3 class="mb-1">{{ alumnos|length }}</h3>
+                    <p class="text-muted mb-0">Alumnos</p>
+                    <small class="text-muted">
+                        {{ alumnos|selectattr('activo')|list|length }} activos, 
+                        {{ (alumnos|length) - (alumnos|selectattr('activo')|list|length) }} inactivos
+                    </small>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="stat-card tutors">
+                    <div class="stat-icon tutors">
+                        <i class="fas fa-user-tie"></i>
+                    </div>
+                    <h3 class="mb-1">{{ tutores|length }}</h3>
+                    <p class="text-muted mb-0">Tutores</p>
+                    <small class="text-muted">
+                        {{ tutores|selectattr('activo')|list|length }} activos, 
+                        {{ (tutores|length) - (tutores|selectattr('activo')|list|length) }} inactivos
+                    </small>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="stat-card parents">
+                    <div class="stat-icon parents">
+                        <i class="fas fa-user-friends"></i>
+                    </div>
+                    <h3 class="mb-1">{{ padres|length }}</h3>
+                    <p class="text-muted mb-0">Padres/Madres</p>
+                    <small class="text-muted">
+                        {{ padres|selectattr('activo')|list|length }} activos, 
+                        {{ (padres|length) - (padres|selectattr('activo')|list|length) }} inactivos
+                    </small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Barra de herramientas -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-md-4">
+                        <div class="search-box">
+                            <i class="fas fa-search search-icon"></i>
+                            <input type="text" id="searchUsers" class="form-control" placeholder="Buscar usuarios por nombre, email o curso...">
+                        </div>
+                    </div>
+                    <div class="col-md-8 text-end">
+                        <div class="d-flex justify-content-end gap-3 flex-wrap">
+                            <div class="export-dropdown">
+                                <button type="button" class="btn export-btn" id="exportDropdownBtn">
+                                    <i class="fas fa-download me-2"></i>Exportar Datos
+                                    <i class="fas fa-chevron-down ms-2"></i>
+                                </button>
+                                <div class="export-menu" id="exportMenu">
+                                    <a href="{{ url_for('routes.director_export_users', institution_id=institucion.id, format='excel') }}" 
+                                       class="export-option">
+                                        <i class="fas fa-file-excel" style="color: #107c41;"></i>
+                                        Exportar a Excel (.xlsx)
+                                    </a>
+                                    <a href="{{ url_for('routes.director_export_users', institution_id=institucion.id, format='csv') }}" 
+                                       class="export-option">
+                                        <i class="fas fa-file-csv" style="color: #0066cc;"></i>
+                                        Exportar a CSV (.csv)
+                                    </a>
+                                    <a href="{{ url_for('routes.director_export_users', institution_id=institucion.id, format='pdf') }}" 
+                                       class="export-option">
+                                        <i class="fas fa-file-pdf" style="color: #dc3545;"></i>
+                                        Exportar a PDF (.pdf)
+                                    </a>
+                                </div>
+                            </div>
+                            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#inviteUserModal">
+                                <i class="fas fa-user-plus me-2"></i>Invitar Usuario
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filtros por tipo de usuario -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <ul class="nav nav-pills filter-tabs justify-content-center" id="userFilterTabs">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#" data-filter="all">
+                            <i class="fas fa-users me-2"></i>Todos los Usuarios
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" data-filter="profesores">
+                            <i class="fas fa-chalkboard-teacher me-2"></i>Profesores
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" data-filter="alumnos">
+                            <i class="fas fa-user-graduate me-2"></i>Alumnos
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" data-filter="tutores">
+                            <i class="fas fa-user-tie me-2"></i>Tutores
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" data-filter="padres">
+                            <i class="fas fa-user-friends me-2"></i>Padres/Madres
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Lista de Usuarios -->
+        <div class="row" id="usersContainer">
+            <!-- Profesores -->
+            {% for profesor in profesores %}
+            <div class="col-lg-6 mb-3 user-item" data-role="profesores" data-search="{{ profesor.nombre }} {{ profesor.apellido }} {{ profesor.email }}">
+                <div class="user-card">
+                    <div class="d-flex align-items-center">
+                        <div class="user-avatar professors">
+                            <i class="fas fa-chalkboard-teacher"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <h5 class="mb-1">{{ profesor.nombre }} {{ profesor.apellido }}</h5>
+                            <p class="mb-1 text-muted">
+                                <i class="fas fa-envelope me-1"></i>{{ profesor.email }}
+                            </p>
+                            <div class="d-flex align-items-center">
+                                <span class="role-badge role-PROFESOR me-2">Profesor</span>
+                                <span class="status-badge status-{{ 'active' if profesor.activo else 'inactive' }}">
+                                    {{ 'Activo' if profesor.activo else 'Inactivo' }}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            <div class="btn-group">
+                                <button type="button" class="btn btn-outline-secondary btn-sm" onclick="editUser({{ profesor.id }}, '{{ profesor.rol.value }}')">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button type="button" class="btn btn-outline-{{ 'danger' if profesor.activo else 'success' }} btn-sm" onclick="toggleUserStatus({{ profesor.id }}, {{ profesor.activo|lower }})">
+                                    <i class="fas fa-{{ 'ban' if profesor.activo else 'check' }}"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+
+            <!-- Alumnos -->
+            {% for alumno in alumnos %}
+            <div class="col-lg-6 mb-3 user-item" data-role="alumnos" data-search="{{ alumno.nombre }} {{ alumno.apellido }} {{ alumno.email }} {{ alumno.curso.nombre if alumno.curso }}">
+                <div class="user-card">
+                    <div class="d-flex align-items-center">
+                        <div class="user-avatar students">
+                            <i class="fas fa-user-graduate"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <h5 class="mb-1">{{ alumno.nombre }} {{ alumno.apellido }}</h5>
+                            <p class="mb-1 text-muted">
+                                <i class="fas fa-envelope me-1"></i>{{ alumno.email }}
+                            </p>
+                            {% if alumno.curso %}
+                            <p class="mb-1 text-muted small">
+                                <i class="fas fa-graduation-cap me-1"></i>{{ alumno.curso.nombre }}
+                            </p>
+                            {% endif %}
+                            <div class="d-flex align-items-center">
+                                <span class="role-badge role-ALUMNO me-2">Alumno</span>
+                                <span class="status-badge status-{{ 'active' if alumno.activo else 'inactive' }}">
+                                    {{ 'Activo' if alumno.activo else 'Inactivo' }}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            <div class="btn-group">
+                                <button type="button" class="btn btn-outline-secondary btn-sm" onclick="editUser({{ alumno.id }}, '{{ alumno.rol.value }}')">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button type="button" class="btn btn-outline-{{ 'danger' if alumno.activo else 'success' }} btn-sm" onclick="toggleUserStatus({{ alumno.id }}, {{ alumno.activo|lower }})">
+                                    <i class="fas fa-{{ 'ban' if alumno.activo else 'check' }}"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+
+            <!-- Tutores -->
+            {% for tutor in tutores %}
+            <div class="col-lg-6 mb-3 user-item" data-role="tutores" data-search="{{ tutor.nombre }} {{ tutor.apellido }} {{ tutor.email }} {{ tutor.curso_tutor.nombre if tutor.curso_tutor }}">
+                <div class="user-card">
+                    <div class="d-flex align-items-center">
+                        <div class="user-avatar tutors">
+                            <i class="fas fa-user-tie"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <h5 class="mb-1">{{ tutor.nombre }} {{ tutor.apellido }}</h5>
+                            <p class="mb-1 text-muted">
+                                <i class="fas fa-envelope me-1"></i>{{ tutor.email }}
+                            </p>
+                            {% if tutor.curso_tutor %}
+                            <p class="mb-1 text-muted small">
+                                <i class="fas fa-users me-1"></i>Tutor de {{ tutor.curso_tutor.nombre }}
+                            </p>
+                            {% endif %}
+                            <div class="d-flex align-items-center">
+                                <span class="role-badge role-TUTOR me-2">Tutor</span>
+                                <span class="status-badge status-{{ 'active' if tutor.activo else 'inactive' }}">
+                                    {{ 'Activo' if tutor.activo else 'Inactivo' }}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            <div class="btn-group">
+                                <button type="button" class="btn btn-outline-secondary btn-sm" onclick="editUser({{ tutor.id }}, '{{ tutor.rol.value }}')">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button type="button" class="btn btn-outline-{{ 'danger' if tutor.activo else 'success' }} btn-sm" onclick="toggleUserStatus({{ tutor.id }}, {{ tutor.activo|lower }})">
+                                    <i class="fas fa-{{ 'ban' if tutor.activo else 'check' }}"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+
+            <!-- Padres/Madres -->
+            {% for padre in padres %}
+            <div class="col-lg-6 mb-3 user-item" data-role="padres" data-search="{{ padre.nombre }} {{ padre.apellido }} {{ padre.email }}">
+                <div class="user-card">
+                    <div class="d-flex align-items-center">
+                        <div class="user-avatar parents">
+                            <i class="fas fa-user-friends"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <h5 class="mb-1">{{ padre.nombre }} {{ padre.apellido }}</h5>
+                            <p class="mb-1 text-muted">
+                                <i class="fas fa-envelope me-1"></i>{{ padre.email }}
+                            </p>
+                            <div class="d-flex align-items-center">
+                                <span class="role-badge role-{{ padre.rol.value }} me-2">
+                                    {{ 'Padre' if padre.rol.value == 'PADRE' else 'Madre' }}
+                                </span>
+                                <span class="status-badge status-{{ 'active' if padre.activo else 'inactive' }}">
+                                    {{ 'Activo' if padre.activo else 'Inactivo' }}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            <div class="btn-group">
+                                <button type="button" class="btn btn-outline-secondary btn-sm" onclick="editUser({{ padre.id }}, '{{ padre.rol.value }}')">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button type="button" class="btn btn-outline-{{ 'danger' if padre.activo else 'success' }} btn-sm" onclick="toggleUserStatus({{ padre.id }}, {{ padre.activo|lower }})">
+                                    <i class="fas fa-{{ 'ban' if padre.activo else 'check' }}"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Estado vacío -->
+        <div id="emptyState" class="empty-state" style="display: none;">
+            <i class="fas fa-users-slash"></i>
+            <h4>No se encontraron usuarios</h4>
+            <p>Intenta cambiar los filtros o términos de búsqueda</p>
+        </div>
+    </div>
+
+    <!-- Modal Invitar Usuario -->
+    <div class="modal fade" id="inviteUserModal" tabindex="-1" aria-labelledby="inviteUserModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="inviteUserModalLabel">
+                        <i class="fas fa-user-plus me-2"></i>Invitar Nuevo Usuario
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="inviteUserForm">
+                    <div class="modal-body">
+                        <!-- Datos básicos -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="invite_nombre" class="form-label">
+                                    <i class="fas fa-user me-2"></i>Nombre *
+                                </label>
+                                <input type="text" class="form-control" id="invite_nombre" name="nombre" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="invite_apellido" class="form-label">
+                                    <i class="fas fa-user me-2"></i>Apellido *
+                                </label>
+                                <input type="text" class="form-control" id="invite_apellido" name="apellido" required>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-8">
+                                <label for="invite_email" class="form-label">
+                                    <i class="fas fa-envelope me-2"></i>Email *
+                                </label>
+                                <input type="email" class="form-control" id="invite_email" name="email" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="invite_rol" class="form-label">
+                                    <i class="fas fa-user-tag me-2"></i>Rol *
+                                </label>
+                                <select class="form-select" id="invite_rol" name="rol" required>
+                                    <option value="">Seleccionar rol</option>
+                                    <option value="PROFESOR">Profesor</option>
+                                    <option value="TUTOR">Tutor</option>
+                                    <option value="ALUMNO">Alumno</option>
+                                    <option value="PADRE">Padre</option>
+                                    <option value="MADRE">Madre</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <!-- Campos específicos para Alumno -->
+                        <div id="alumnoFields" style="display: none;">
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label for="invite_fecha_nacimiento_alumno" class="form-label">
+                                        <i class="fas fa-calendar me-2"></i>Fecha de Nacimiento *
+                                    </label>
+                                    <input type="date" class="form-control" id="invite_fecha_nacimiento_alumno" name="fecha_nacimiento">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="invite_curso_alumno" class="form-label">
+                                        <i class="fas fa-graduation-cap me-2"></i>Curso *
+                                    </label>
+                                    <select class="form-select" id="invite_curso_alumno" name="curso_id">
+                                        <option value="">Seleccionar curso</option>
+                                        {% for curso in cursos %}
+                                            <option value="{{ curso.id }}">{{ curso.nombre }} - {{ curso.nivel or 'Sin nivel' }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <!-- Patologías -->
+                            <div class="mb-3">
+                                <label class="form-label">
+                                    <i class="fas fa-notes-medical me-2"></i>Patologías (opcional)
+                                </label>
+                                <div class="patologias-selector">
+                                    {% for patologia in patologias_disponibles %}
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="patologias" value="{{ patologia.value }}" id="patologia_{{ loop.index }}">
+                                        <label class="form-check-label" for="patologia_{{ loop.index }}">
+                                            {{ patologia.label }}
+                                        </label>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Campos específicos para Tutor -->
+                        <div id="tutorFields" style="display: none;">
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label for="invite_curso_tutor" class="form-label">
+                                        <i class="fas fa-graduation-cap me-2"></i>Curso a tutorear (opcional)
+                                    </label>
+                                    <select class="form-select" id="invite_curso_tutor" name="curso_id">
+                                        <option value="">Sin curso asignado</option>
+                                        {% for curso in cursos %}
+                                            {% if not curso.tutor_id %}
+                                                <option value="{{ curso.id }}">{{ curso.nombre }} - {{ curso.nivel or 'Sin nivel' }}</option>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="invite_fecha_nacimiento_tutor" class="form-label">
+                                        <i class="fas fa-calendar me-2"></i>Fecha de Nacimiento (opcional)
+                                    </label>
+                                    <input type="date" class="form-control" id="invite_fecha_nacimiento_tutor" name="fecha_nacimiento">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Campos opcionales para otros roles -->
+                        <div id="otherFields" style="display: none;">
+                            <div class="row mb-3">
+                                <div class="col-12">
+                                    <label for="invite_fecha_nacimiento_other" class="form-label">
+                                        <i class="fas fa-calendar me-2"></i>Fecha de Nacimiento (opcional)
+                                    </label>
+                                    <input type="date" class="form-control" id="invite_fecha_nacimiento_other" name="fecha_nacimiento">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="alert alert-info d-flex align-items-center" role="alert">
+                            <i class="fas fa-info-circle me-3"></i>
+                            <div>
+                                <strong>Información:</strong> Se enviará un email de invitación al usuario para que configure su cuenta y establezca su contraseña.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            <i class="fas fa-times me-1"></i>Cancelar
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-paper-plane me-1"></i>Enviar Invitación
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Editar Usuario -->
+    <div class="modal fade" id="editUserModal" tabindex="-1" aria-labelledby="editUserModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editUserModalLabel">
+                        <i class="fas fa-user-edit me-2"></i>Editar Usuario
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="editUserForm">
+                    <input type="hidden" id="edit_user_id" name="user_id">
+                    <div class="modal-body">
+                        <!-- Usuario info header -->
+                        <div class="text-center mb-4">
+                            <div id="editUserAvatar" class="user-avatar mx-auto mb-3" style="width: 80px; height: 80px; font-size: 2rem;">
+                                <i class="fas fa-user"></i>
+                            </div>
+                            <span id="editUserRole" class="role-badge"></span>
+                        </div>
+
+                        <!-- Datos básicos -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="edit_nombre" class="form-label">
+                                    <i class="fas fa-user me-2"></i>Nombre *
+                                </label>
+                                <input type="text" class="form-control" id="edit_nombre" name="nombre" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="edit_apellido" class="form-label">
+                                    <i class="fas fa-user me-2"></i>Apellido *
+                                </label>
+                                <input type="text" class="form-control" id="edit_apellido" name="apellido" required>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-8">
+                                <label for="edit_email" class="form-label">
+                                    <i class="fas fa-envelope me-2"></i>Email *
+                                </label>
+                                <input type="email" class="form-control" id="edit_email" name="email" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">
+                                    <i class="fas fa-user-tag me-2"></i>Rol
+                                </label>
+                                <input type="text" class="form-control" id="edit_rol_display" readonly>
+                            </div>
+                        </div>
+
+                        <!-- Campos específicos para alumnos -->
+                        <div id="editAlumnoFields" style="display: none;">
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label for="edit_fecha_nacimiento" class="form-label">
+                                        <i class="fas fa-calendar me-2"></i>Fecha de Nacimiento
+                                    </label>
+                                    <input type="date" class="form-control" id="edit_fecha_nacimiento" name="fecha_nacimiento">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="edit_curso_id" class="form-label">
+                                        <i class="fas fa-graduation-cap me-2"></i>Curso
+                                    </label>
+                                    <select class="form-select" id="edit_curso_id" name="curso_id">
+                                        <option value="">Sin curso asignado</option>
+                                        {% for curso in cursos %}
+                                            <option value="{{ curso.id }}">{{ curso.nombre }} - {{ curso.nivel or 'Sin nivel' }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Patologías para alumnos -->
+                            <div class="mb-3">
+                                <label class="form-label">
+                                    <i class="fas fa-notes-medical me-2"></i>Patologías
+                                </label>
+                                <div class="mb-2">
+                                    <small class="text-muted">Patologías actuales:</small>
+                                    <div class="mt-1" id="currentPatologias"></div>
+                                </div>
+                                <div class="patologias-selector">
+                                    {% for patologia in patologias_disponibles %}
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="edit_patologias" value="{{ patologia.value }}" id="edit_patologia_{{ loop.index }}">
+                                        <label class="form-check-label" for="edit_patologia_{{ loop.index }}">
+                                            {{ patologia.label }}
+                                        </label>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Información adicional (solo lectura) -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">
+                                    <i class="fas fa-calendar-plus me-2"></i>Fecha de Registro
+                                </label>
+                                <input type="text" class="form-control" id="edit_fecha_creacion" readonly>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">
+                                    <i class="fas fa-sync me-2"></i>Última Actualización
+                                </label>
+                                <input type="text" class="form-control" id="edit_fecha_actualizacion" readonly>
+                            </div>
+                        </div>
+
+                        <div class="alert alert-info d-flex align-items-center" role="alert">
+                            <i class="fas fa-info-circle me-3"></i>
+                            <div>
+                                <strong>Nota:</strong> Los cambios se aplicarán inmediatamente. El usuario recibirá una notificación si se modifica información crítica.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            <i class="fas fa-times me-1"></i>Cancelar
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-1"></i>Guardar Cambios
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Referencias a elementos
+            const filterTabs = document.querySelectorAll('#userFilterTabs .nav-link');
+            const userItems = document.querySelectorAll('.user-item');
+            const emptyState = document.getElementById('emptyState');
+            const searchInput = document.getElementById('searchUsers');
+            const inviteForm = document.getElementById('inviteUserForm');
+            const editForm = document.getElementById('editUserForm');
+            const rolSelect = document.getElementById('invite_rol');
+            
+            // Export dropdown functionality
+            const exportDropdownBtn = document.getElementById('exportDropdownBtn');
+            const exportMenu = document.getElementById('exportMenu');
+            const exportDropdown = document.querySelector('.export-dropdown');
+            
+            exportDropdownBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                exportMenu.classList.toggle('show');
+                exportDropdown.classList.toggle('active');
+            });
+            
+            // Close export menu when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!exportDropdownBtn.contains(e.target) && !exportMenu.contains(e.target)) {
+                    exportMenu.classList.remove('show');
+                    exportDropdown.classList.remove('active');
+                }
+            });
+
+            // Add loading state to export options
+            const exportOptions = document.querySelectorAll('.export-option');
+            exportOptions.forEach(option => {
+                option.addEventListener('click', function() {
+                    const originalText = this.innerHTML;
+                    this.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Generando archivo...';
+                    
+                    // Reset after 3 seconds (the download should have started by then)
+                    setTimeout(() => {
+                        this.innerHTML = originalText;
+                        exportMenu.classList.remove('show');
+                        exportDropdown.classList.remove('active');
+                    }, 3000);
+                });
+            });
+            
+            // Campos condicionales - invitar
+            const alumnoFields = document.getElementById('alumnoFields');
+            const tutorFields = document.getElementById('tutorFields');
+            const otherFields = document.getElementById('otherFields');
+
+            // Modales
+            const inviteModal = new bootstrap.Modal(document.getElementById('inviteUserModal'));
+            const editModal = new bootstrap.Modal(document.getElementById('editUserModal'));
+            
+            // Función para mostrar/ocultar usuarios
+            function filterUsers(role = 'all', searchTerm = '') {
+                let visibleCount = 0;
+                
+                userItems.forEach(item => {
+                    const itemRole = item.getAttribute('data-role');
+                    const itemSearch = item.getAttribute('data-search').toLowerCase();
+                    
+                    const roleMatch = role === 'all' || itemRole === role;
+                    const searchMatch = searchTerm === '' || itemSearch.includes(searchTerm.toLowerCase());
+                    
+                    if (roleMatch && searchMatch) {
+                        item.style.display = 'block';
+                        visibleCount++;
+                    } else {
+                        item.style.display = 'none';
+                    }
+                });
+                
+                // Mostrar estado vacío si no hay resultados
+                emptyState.style.display = visibleCount === 0 ? 'block' : 'none';
+                document.getElementById('usersContainer').style.display = visibleCount === 0 ? 'none' : 'flex';
+            }
+            
+            // Event listeners para filtros
+            filterTabs.forEach(tab => {
+                tab.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    // Actualizar tab activo
+                    filterTabs.forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // Filtrar usuarios
+                    const role = this.getAttribute('data-filter');
+                    const searchTerm = searchInput.value;
+                    filterUsers(role, searchTerm);
+                });
+            });
+            
+            // Búsqueda en tiempo real
+            searchInput.addEventListener('input', function() {
+                const activeTab = document.querySelector('#userFilterTabs .nav-link.active');
+                const role = activeTab.getAttribute('data-filter');
+                filterUsers(role, this.value);
+            });
+            
+            // ========== GESTIÓN DE FORMULARIO DE INVITACIÓN ==========
+            
+            // Gestión de campos condicionales en el formulario de invitación
+            rolSelect.addEventListener('change', function() {
+                // Ocultar todos los campos primero
+                alumnoFields.style.display = 'none';
+                tutorFields.style.display = 'none';
+                otherFields.style.display = 'none';
+                
+                // Resetear campos requeridos
+                const fechaNacimientoAlumno = document.getElementById('invite_fecha_nacimiento_alumno');
+                const cursoAlumno = document.getElementById('invite_curso_alumno');
+                if (fechaNacimientoAlumno) fechaNacimientoAlumno.required = false;
+                if (cursoAlumno) cursoAlumno.required = false;
+                
+                // Mostrar campos según el rol seleccionado
+                switch(this.value) {
+                    case 'ALUMNO':
+                        alumnoFields.style.display = 'block';
+                        if (fechaNacimientoAlumno) fechaNacimientoAlumno.required = true;
+                        if (cursoAlumno) cursoAlumno.required = true;
+                        break;
+                    case 'TUTOR':
+                        tutorFields.style.display = 'block';
+                        break;
+                    case 'PROFESOR':
+                    case 'PADRE':
+                    case 'MADRE':
+                        otherFields.style.display = 'block';
+                        break;
+                }
+            });
+            
+            // Envío de formulario de invitación
+            inviteForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                // Construir data manualmente para manejar campos condicionales
+                const data = {
+                    nombre: document.getElementById('invite_nombre').value.trim(),
+                    apellido: document.getElementById('invite_apellido').value.trim(),
+                    email: document.getElementById('invite_email').value.trim(),
+                    rol: document.getElementById('invite_rol').value
+                };
+                
+                // Agregar campos específicos según el rol
+                if (data.rol === 'ALUMNO') {
+                    data.fecha_nacimiento = document.getElementById('invite_fecha_nacimiento_alumno').value;
+                    data.curso_id = document.getElementById('invite_curso_alumno').value;
+                    
+                    // Procesar patologías
+                    const patologias = [];
+                    const checkboxes = document.querySelectorAll('input[name="patologias"]:checked');
+                    checkboxes.forEach(cb => patologias.push(cb.value));
+                    data.patologias = patologias;
+                } else if (data.rol === 'TUTOR') {
+                    const cursoTutor = document.getElementById('invite_curso_tutor').value;
+                    const fechaTutor = document.getElementById('invite_fecha_nacimiento_tutor').value;
+                    if (cursoTutor) data.curso_id = cursoTutor;
+                    if (fechaTutor) data.fecha_nacimiento = fechaTutor;
+                } else if (data.rol === 'PROFESOR' || data.rol === 'PADRE' || data.rol === 'MADRE') {
+                    const fechaOther = document.getElementById('invite_fecha_nacimiento_other').value;
+                    if (fechaOther) data.fecha_nacimiento = fechaOther;
+                }
+                
+                console.log('Datos a enviar:', data); // Debug
+                
+                // Mostrar loading
+                const submitBtn = this.querySelector('button[type="submit"]');
+                const originalText = submitBtn.innerHTML;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Enviando...';
+                submitBtn.disabled = true;
+                
+                // Enviar datos
+                fetch(`/institution/{{ institucion.id }}/director/users/invite`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        inviteModal.hide();
+                        showAlert('success', data.message);
+                        
+                        // Resetear formulario
+                        inviteForm.reset();
+                        alumnoFields.style.display = 'none';
+                        tutorFields.style.display = 'none';
+                        otherFields.style.display = 'none';
+                        
+                        // Recargar página para mostrar cambios
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 2000);
+                    } else {
+                        showAlert('danger', data.error || 'Error al enviar invitación');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showAlert('danger', 'Error de conexión. Intenta nuevamente.');
+                })
+                .finally(() => {
+                    submitBtn.innerHTML = originalText;
+                    submitBtn.disabled = false;
+                });
+            });
+
+            // ========== GESTIÓN DE FORMULARIO DE EDICIÓN ==========
+
+            // Envío de formulario de edición
+            editForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+
+                const formData = new FormData(this);
+                const data = Object.fromEntries(formData);
+                const userId = data.user_id;
+
+                // Procesar patologías si es alumno
+                const editAlumnoFields = document.getElementById('editAlumnoFields');
+                if (editAlumnoFields.style.display !== 'none') {
+                    const patologias = [];
+                    const checkboxes = document.querySelectorAll('input[name="edit_patologias"]:checked');
+                    checkboxes.forEach(cb => patologias.push(cb.value));
+                    data.patologias = patologias;
+                }
+
+                // Mostrar loading
+                const submitBtn = this.querySelector('button[type="submit"]');
+                const originalText = submitBtn.innerHTML;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Guardando...';
+                submitBtn.disabled = true;
+
+                // Enviar datos
+                fetch(`/institution/{{ institucion.id }}/director/users/${userId}/edit`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        editModal.hide();
+                        showAlert('success', data.message);
+                        // Recargar página para mostrar cambios
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 1500);
+                    } else {
+                        showAlert('danger', data.error || 'Error al actualizar usuario');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showAlert('danger', 'Error de conexión. Intenta nuevamente.');
+                })
+                .finally(() => {
+                    submitBtn.innerHTML = originalText;
+                    submitBtn.disabled = false;
+                });
+            });
+            
+            // Animaciones de entrada para las tarjetas de usuario
+            const userCards = document.querySelectorAll('.user-card');
+            userCards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                setTimeout(() => {
+                    card.style.transition = 'all 0.6s ease';
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, index * 50);
+            });
+        });
+
+        // Función para mostrar alertas
+        function showAlert(type, message) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+            alertDiv.innerHTML = `
+                <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'danger' ? 'exclamation-triangle' : 'info-circle'} me-2"></i>
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            
+            // Insertar al inicio del contenedor
+            const container = document.querySelector('.container.mt-4');
+            container.insertBefore(alertDiv, container.firstChild);
+            
+            // Auto-remover después de 5 segundos
+            setTimeout(() => {
+                if (alertDiv.parentNode) {
+                    alertDiv.remove();
+                }
+            }, 5000);
+        }
+
+        // Función para ver detalles del usuario
+        function viewUser(userId) {
+            // Implementar modal de vista o redireccionar a página de detalles
+            console.log('Ver usuario:', userId);
+            showAlert('info', 'Función de vista en desarrollo');
+        }
+
+        // Función para editar usuario
+        function editUser(userId, userRole) {
+            // Hacer request para obtener datos del usuario
+            fetch(`/institution/{{ institucion.id }}/director/users/${userId}/edit`)
+            .then(response => response.json())
+            .then(userData => {
+                if (userData.success) {
+                    populateEditForm(userData.user);
+                    const editModal = new bootstrap.Modal(document.getElementById('editUserModal'));
+                    editModal.show();
+                } else {
+                    showAlert('danger', userData.error || 'Error al cargar datos del usuario');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showAlert('danger', 'Error al cargar datos del usuario');
+            });
+        }
+
+        // Función para poblar el formulario de edición
+        function populateEditForm(user) {
+            // Datos básicos
+            document.getElementById('edit_user_id').value = user.id;
+            document.getElementById('edit_nombre').value = user.nombre || '';
+            document.getElementById('edit_apellido').value = user.apellido || '';
+            document.getElementById('edit_email').value = user.email || '';
+            document.getElementById('edit_rol_display').value = user.rol_display || '';
+
+            // Avatar y rol visual
+            const avatar = document.getElementById('editUserAvatar');
+            const roleSpan = document.getElementById('editUserRole');
+            
+            const roleConfig = {
+                'profesor': { icon: 'chalkboard-teacher', class: 'professors', badge: 'role-PROFESOR' },
+                'alumno': { icon: 'user-graduate', class: 'students', badge: 'role-ALUMNO' },
+                'tutor': { icon: 'user-tie', class: 'tutors', badge: 'role-TUTOR' },
+                'padre': { icon: 'user-friends', class: 'parents', badge: 'role-PADRE' },
+                'madre': { icon: 'user-friends', class: 'parents', badge: 'role-MADRE' }
+            };
+
+            const config = roleConfig[user.rol] || roleConfig['profesor'];
+            avatar.className = `user-avatar ${config.class} mx-auto mb-3`;
+            avatar.innerHTML = `<i class="fas fa-${config.icon}"></i>`;
+            roleSpan.className = `role-badge ${config.badge}`;
+            roleSpan.textContent = user.rol_display || user.rol;
+
+            // Fechas (solo lectura)
+            document.getElementById('edit_fecha_creacion').value = user.fecha_creacion || 'N/A';
+            document.getElementById('edit_fecha_actualizacion').value = user.fecha_actualizacion || 'N/A';
+
+            // Campos específicos para alumnos
+            const editAlumnoFields = document.getElementById('editAlumnoFields');
+            if (user.rol === 'alumno') {
+                editAlumnoFields.style.display = 'block';
+                document.getElementById('edit_fecha_nacimiento').value = user.fecha_nacimiento || '';
+                document.getElementById('edit_curso_id').value = user.curso_id || '';
+
+                // Patologías actuales
+                const currentPatologias = document.getElementById('currentPatologias');
+                if (user.patologias && user.patologias.length > 0) {
+                    currentPatologias.innerHTML = user.patologias.map(p => 
+                        `<span class="patologia-tag">${p.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}</span>`
+                    ).join('');
+                } else {
+                    currentPatologias.innerHTML = '<small class="text-muted">Sin patologías registradas</small>';
+                }
+
+                // Marcar checkboxes de patologías
+                const checkboxes = document.querySelectorAll('input[name="edit_patologias"]');
+                checkboxes.forEach(cb => {
+                    cb.checked = user.patologias && user.patologias.includes(cb.value);
+                });
+            } else {
+                editAlumnoFields.style.display = 'none';
+            }
+        }
+
+        // Función para activar/desactivar usuario
+        function toggleUserStatus(userId, currentStatus) {
+            const action = currentStatus ? 'desactivar' : 'activar';
+            
+            if (confirm(`¿Estás seguro que deseas ${action} este usuario?`)) {
+                fetch(`/institution/{{ institucion.id }}/director/users/${userId}/toggle-status`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showAlert('success', data.message);
+                        // Recargar página para reflejar cambios
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 1500);
+                    } else {
+                        showAlert('danger', data.error || 'Error al cambiar estado del usuario');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showAlert('danger', 'Error de conexión. Intenta nuevamente.');
+                });
+            }
+        }
+
+        // Función para resetear modal de invitación al cerrarlo
+        document.getElementById('inviteUserModal').addEventListener('hidden.bs.modal', function () {
+            document.getElementById('inviteUserForm').reset();
+            document.getElementById('alumnoFields').style.display = 'none';
+            document.getElementById('tutorFields').style.display = 'none';
+            document.getElementById('otherFields').style.display = 'none';
+            
+            // Resetear campos requeridos
+            const fechaNacimientoAlumno = document.getElementById('invite_fecha_nacimiento_alumno');
+            const cursoAlumno = document.getElementById('invite_curso_alumno');
+            if (fechaNacimientoAlumno) fechaNacimientoAlumno.required = false;
+            if (cursoAlumno) cursoAlumno.required = false;
+        });
+
+        // Función para resetear modal de edición al cerrarlo
+        document.getElementById('editUserModal').addEventListener('hidden.bs.modal', function () {
+            document.getElementById('editUserForm').reset();
+            document.getElementById('editAlumnoFields').style.display = 'none';
+        });
+    </script>
+</body>
+</html>
