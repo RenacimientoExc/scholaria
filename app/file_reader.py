@@ -14,8 +14,6 @@ def procesar_archivo(filepath):
         return extraer_word(filepath)
     elif ext == '.txt':
         return extraer_txt(filepath)
-    elif ext in ['.jpg', '.jpeg', '.png']:
-        return extraer_ocr(filepath)
     elif ext in ['.ppt', '.pptx']:
         return extraer_powerpoint(filepath)
     else:
@@ -48,4 +46,5 @@ def extraer_powerpoint(filepath):
             if hasattr(shape, "text"):
                 text += shape.text + "\n"
     return text.strip()
+
 
