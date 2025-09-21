@@ -1,4 +1,974 @@
-<!DOCTYPE html>
+</style>
+</head>
+<body>
+    <!-- Backdrop for mobile -->
+    <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="toggleSidebar()"></div>
+
+    <div class="main-container">
+        <!-- Enhanced Sidebar -->
+        <aside class="sidebar collapsed" id="sidebar">
+            <button class="theme-toggle" onclick="toggleTheme()" title="Cambiar tema">
+                <i class="fas fa-moon" id="themeIcon"></i>
+            </button>
+            
+            <div class="sidebar-header">
+                <div class="logo-section">
+                    <div class="logo-icon">
+                        <i class="fas fa-user-graduate"></i>
+                    </div>
+                    <div class="logo-text">EstudianteIA</div>
+                </div>
+                
+                <a href="/chat" class="new-chat-btn text-decoration-none">
+                    <i class="fas fa-plus"></i>
+                    Nueva Consulta
+                </a>
+            </div>
+
+            <div class="chat-search">
+                <div class="search-container">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="searchInput" placeholder="Buscar conversaciones..." oninput="buscarChats()">
+                </div>
+            </div>
+            
+            <div class="chats-list" id="chatsList">
+                {% for chat in chats %}
+                <div class="chat-item {% if chat_actual and chat.id == chat_actual.id %}active{% endif %}" 
+                     onclick="irAChat({{ chat.id }})" data-chat-id="{{ chat.id }}">
+                    <span class="chat-name">{{ chat.nombre_chat or 'Consulta sin nombre' }}</span>
+                    <div class="chat-actions">
+                        <button class="chat-action-btn" onclick="event.stopPropagation(); editarNombreChat({{ chat.id }}, '{{ chat.nombre_chat }}')" title="Renombrar">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="chat-action-btn" onclick="event.stopPropagation(); eliminarChat({{ chat.id }})" title="Eliminar">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <div class="user-avatar">
+                        {{ user_name[0].upper() if user_name else 'E' }}
+                    </div>
+                    <div>
+                        <div style="font-weight: 600; font-size: 0.95rem;">{{ user_name or 'Estudiante' }}</div>
+                        <small style="opacity: 0.7; font-size: 0.85rem;">{{ user_role or 'Aprendiz' }}</small>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Enhanced Main Content -->
+        <main class="main-content">
+            <header class="chat-header">
+                <button class="sidebar-toggle" onclick="toggleSidebar()">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <h1 class="chat-title mb-0">
+                    {% if chat_actual %}
+                        {{ chat_actual.nombre_chat or 'Consulta sin nombre' }}
+                    {% else %}
+                        Tu Asistente de Estudio IA
+                    {% endif %}
+                </h1>
+            </header>
+
+            <div class="messages-container" id="messagesContainer">
+                <div class="messages-wrapper">
+                    {% if chat_actual and mensajes %}
+                        {% for mensaje in mensajes %}
+                        <div class="message {% if mensaje.es_usuario %}user-message{% else %}ai-message{% endif %}">
+                            <div class="message-avatar">
+                                {% if mensaje.es_usuario %}
+                                    {{ user_name[0].upper() if user_name else 'E' }}
+                                {% else %}
+                                    <i class="fas fa-brain"></i>
+                                {% endif %}
+                            </div>
+                            <div class="message-content">
+                                {% if mensaje.es_usuario %}
+                                    {{ mensaje.contenido_original | e }}
+                                {% else %}
+                                    {{ mensaje.contenido_renderizado | safe }}
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                    <div class="empty-state">
+                        <div class="empty-state-icon">
+                            <i class="fas fa-graduation-cap"></i>
+                        </div>
+                        <h2>¡Hola, Estudiante!</h2>
+                        <p>Soy tu asistente personal de estudio con inteligencia artificial. Estoy aquí para ayudarte a aprender, resolver dudas, estudiar para exámenes, hacer tareas y alcanzar tus metas académicas.</p>
+                        
+                        <div class="starter-prompts">
+                            <h3>¿En qué puedo ayudarte hoy?</h3>
+                            <div class="prompts-grid">
+                                <div class="prompt-card" onclick="usarPrompt('Explícame [tema] de manera sencilla con ejemplos prácticos')">
+                                    <div class="prompt-icon">
+                                        <i class="fas fa-lightbulb"></i>
+                                    </div>
+                                    <h4>Explicar Conceptos</h4>
+                                    <p>Te ayudo a entender temas difíciles con ejemplos claros</p>
+                                </div>
+                                
+                                <div class="prompt-card" onclick="usarPrompt('Ayúdame a resolver este problema paso a paso: [describe tu problema]')">
+                                    <div class="prompt-icon">
+                                        <i class="fas fa-calculator"></i>
+                                    </div>
+                                    <h4>Resolver Problemas</h4>
+                                    <p>Resolvemos ejercicios y problemas juntos paso a paso</p>
+                                </div>
+                                
+                                <div class="prompt-card" onclick="usarPrompt('Necesito estudiar para mi examen de [materia]. ¿Puedes ayudarme a crear un plan?')">
+                                    <div class="prompt-icon">
+                                        <i class="fas fa-calendar-check"></i>
+                                    </div>
+                                    <h4>Planificar Estudio</h4>
+                                    <p>Creamos planes de estudio personalizados para tus exámenes</p>
+                                </div>
+                                
+                                <div class="prompt-card" onclick="usarPrompt('Hazme preguntas sobre [tema] para practicar lo que he aprendido')">
+                                    <div class="prompt-icon">
+                                        <i class="fas fa-question-circle"></i>
+                                    </div>
+                                    <h4>Practicar</h4>
+                                    <p>Te hago preguntas para que practiques y refuerces conocimientos</p>
+                                </div>
+                                
+                                <div class="prompt-card" onclick="usarPrompt('Ayúdame con mi tarea de [materia]: [describe la tarea]')">
+                                    <div class="prompt-icon">
+                                        <i class="fas fa-book-open"></i>
+                                    </div>
+                                    <h4>Ayuda con Tareas</h4>
+                                    <p>Te guío para completar tus tareas y proyectos</p>
+                                </div>
+                                
+                                <div class="prompt-card" onclick="usarPrompt('¿Cómo puedo mejorar mis técnicas de estudio y ser más productivo?')">
+                                    <div class="prompt-icon">
+                                        <i class="fas fa-chart-line"></i>
+                                    </div>
+                                    <h4>Mejorar Estudio</h4>
+                                    <p>Consejos y técnicas para estudiar de manera más efectiva</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <div class="typing-indicator" id="typingIndicator">
+                        <div class="message-avatar">
+                            <i class="fas fa-brain"></i>
+                        </div>
+                        <div class="typing-dots">
+                            <div class="typing-dot"></div>
+                            <div class="typing-dot"></div>
+                            <div class="typing-dot"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="input-container">
+                <div class="input-wrapper">
+                    <textarea 
+                        class="message-input" 
+                        id="messageInput" 
+                        placeholder="Escribe tu pregunta o duda aquí... (Shift + Enter para nueva línea)"
+                        rows="1"></textarea>
+                    <button class="send-button" id="sendButton" onclick="enviarMensaje()" disabled>
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Enhanced Modal para renombrar chat -->
+    <div class="modal fade" id="renameModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-edit me-2"></i>
+                        Renombrar Consulta
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <label for="newChatName" class="form-label">Nuevo nombre:</label>
+                    <input type="text" id="newChatName" class="form-control" placeholder="Ingresa el nuevo nombre de la consulta">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-1"></i>
+                        Cancelar
+                    </button>
+                    <button type="button" class="btn btn-primary" onclick="confirmarRenombrar()">
+                        <i class="fas fa-check me-1"></i>
+                        Guardar Cambios
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let currentChatId = {% if chat_actual %}{{ chat_actual.id }}{% else %}null{% endif %};
+        let isLoading = false;
+        let editingChatId = null;
+        let allChats = [];
+        let renameModal;
+        let isMobile = window.innerWidth <= 768;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize Bootstrap modal
+            renameModal = new bootstrap.Modal(document.getElementById('renameModal'));
+            
+            // Store all chats for search functionality
+            const chatItems = document.querySelectorAll('.chat-item');
+            allChats = Array.from(chatItems).map(item => ({
+                id: item.dataset.chatId,
+                name: item.querySelector('.chat-name').textContent.trim(),
+                element: item
+            }));
+
+            // Mobile-specific initialization
+            initializeMobile();
+            
+            scrollToBottom();
+            loadTheme();
+            setupInputHandlers();
+            initializeAnimations();
+            
+            // Close sidebar on mobile when clicking outside
+            document.addEventListener('click', function(e) {
+                if (isMobile) {
+                    const sidebar = document.getElementById('sidebar');
+                    const sidebarToggle = document.querySelector('.sidebar-toggle');
+                    const mainContent = document.querySelector('.main-content');
+                    
+                    if (!sidebar.contains(e.target) && !sidebarToggle.contains(e.target)) {
+                        sidebar.classList.add('collapsed');
+                        document.getElementById('sidebarBackdrop').classList.remove('show');
+                        mainContent.classList.remove('sidebar-open');
+                    }
+                }
+            });
+
+            // Handle window resize
+            window.addEventListener('resize', handleResize);
+        });
+
+        function initializeMobile() {
+            isMobile = window.innerWidth <= 768;
+            
+            if (isMobile) {
+                // Ensure sidebar starts collapsed on mobile
+                const sidebar = document.getElementById('sidebar');
+                sidebar.classList.add('collapsed');
+                
+                // Prevent zoom on input focus (iOS Safari)
+                const inputs = document.querySelectorAll('input, textarea');
+                inputs.forEach(input => {
+                    input.addEventListener('focus', function() {
+                        if (window.innerWidth < 768) {
+                            this.style.fontSize = '16px';
+                        }
+                    });
+                    
+                    input.addEventListener('blur', function() {
+                        this.style.fontSize = '';
+                    });
+                });
+
+                // Add viewport height fix for mobile browsers
+                const setViewportHeight = () => {
+                    const vh = window.innerHeight * 0.01;
+                    document.documentElement.style.setProperty('--vh', `${vh}px`);
+                };
+                
+                setViewportHeight();
+                window.addEventListener('resize', setViewportHeight);
+                window.addEventListener('orientationchange', () => {
+                    setTimeout(setViewportHeight, 100);
+                });
+            }
+        }
+
+        function handleResize() {
+            const wasMobile = isMobile;
+            isMobile = window.innerWidth <= 768;
+            
+            if (wasMobile !== isMobile) {
+                const sidebar = document.getElementById('sidebar');
+                const backdrop = document.getElementById('sidebarBackdrop');
+                const mainContent = document.querySelector('.main-content');
+                
+                if (!isMobile) {
+                    // Desktop - show sidebar, hide backdrop, remove effects
+                    sidebar.classList.remove('collapsed');
+                    backdrop.classList.remove('show');
+                    mainContent.classList.remove('sidebar-open');
+                } else {
+                    // Mobile - hide sidebar, remove effects
+                    sidebar.classList.add('collapsed');
+                    backdrop.classList.remove('show');
+                    mainContent.classList.remove('sidebar-open');
+                }
+            }
+        }
+
+        function initializeAnimations() {
+            // Animate existing messages on load
+            const messages = document.querySelectorAll('.message');
+            messages.forEach((message, index) => {
+                message.style.animationDelay = `${index * 0.1}s`;
+            });
+
+            // Add hover effects to interactive elements (not on mobile)
+            if (!isMobile) {
+                const interactiveElements = document.querySelectorAll('.chat-item, .new-chat-btn, .panel-btn, .theme-toggle');
+                interactiveElements.forEach(element => {
+                    element.addEventListener('mouseenter', function() {
+                        this.style.transform = this.style.transform + ' scale(1.02)';
+                    });
+                    element.addEventListener('mouseleave', function() {
+                        this.style.transform = this.style.transform.replace(' scale(1.02)', '');
+                    });
+                });
+            }
+        }
+
+        function setupInputHandlers() {
+            const messageInput = document.getElementById('messageInput');
+            const sendButton = document.getElementById('sendButton');
+            
+            // Auto-resize textarea with smooth animation
+            messageInput.addEventListener('input', function() {
+                this.style.height = 'auto';
+                const newHeight = Math.min(this.scrollHeight, 200);
+                this.style.height = newHeight + 'px';
+                
+                // Enable/disable send button with smooth transition
+                const hasContent = this.value.trim();
+                sendButton.disabled = !hasContent;
+                sendButton.style.opacity = hasContent ? '1' : '0.5';
+                sendButton.style.transform = hasContent ? 'scale(1)' : 'scale(0.9)';
+            });
+
+            // Enhanced Enter key handling
+            messageInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    if (!isLoading && this.value.trim()) {
+                        enviarMensaje();
+                    }
+                }
+            });
+
+            // Handle rename modal Enter key
+            document.getElementById('newChatName').addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    confirmarRenombrar();
+                }
+            });
+
+            // Add focus effects (not on mobile to avoid issues)
+            if (!isMobile) {
+                messageInput.addEventListener('focus', function() {
+                    this.parentElement.style.transform = 'translateY(-2px)';
+                    this.parentElement.style.boxShadow = '0 10px 25px rgba(59, 130, 246, 0.15)';
+                });
+
+                messageInput.addEventListener('blur', function() {
+                    this.parentElement.style.transform = 'translateY(0)';
+                    this.parentElement.style.boxShadow = 'var(--shadow)';
+                });
+            }
+        }
+
+        // Enhanced theme functionality
+        function toggleTheme() {
+            const html = document.documentElement;
+            const themeIcon = document.getElementById('themeIcon');
+            const isDark = html.getAttribute('data-theme') === 'dark';
+            
+            // Add transition class for smooth theme change
+            html.style.transition = 'all 0.3s ease';
+            
+            if (isDark) {
+                html.removeAttribute('data-theme');
+                themeIcon.className = 'fas fa-moon';
+                localStorage.setItem('theme', 'light');
+            } else {
+                html.setAttribute('data-theme', 'dark');
+                themeIcon.className = 'fas fa-sun';
+                localStorage.setItem('theme', 'dark');
+            }
+
+            // Remove transition after change
+            setTimeout(() => {
+                html.style.transition = '';
+            }, 300);
+        }
+
+        function loadTheme() {
+            const savedTheme = localStorage.getItem('theme');
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            const themeIcon = document.getElementById('themeIcon');
+            
+            if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                themeIcon.className = 'fas fa-sun';
+            } else {
+                themeIcon.className = 'fas fa-moon';
+            }
+        }
+
+        // Enhanced sidebar functionality
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const backdrop = document.getElementById('sidebarBackdrop');
+            const mainContent = document.querySelector('.main-content');
+            
+            sidebar.classList.toggle('collapsed');
+            
+            if (isMobile) {
+                backdrop.classList.toggle('show');
+                
+                // Add or remove blur effect on main content
+                if (sidebar.classList.contains('collapsed')) {
+                    mainContent.classList.remove('sidebar-open');
+                } else {
+                    mainContent.classList.add('sidebar-open');
+                }
+            }
+        }
+
+        // Enhanced search functionality
+        function buscarChats() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            let hasResults = false;
+            
+            allChats.forEach((chat, index) => {
+                const isVisible = chat.name.toLowerCase().includes(searchTerm);
+                chat.element.style.display = isVisible ? 'flex' : 'none';
+                
+                if (isVisible) {
+                    hasResults = true;
+                    // Add staggered animation
+                    chat.element.style.animation = 'slideUp 0.3s ease forwards';
+                    chat.element.style.animationDelay = `${index * 0.05}s`;
+                }
+            });
+
+            // Enhanced no results message
+            let noResultsMsg = document.getElementById('noResultsMsg');
+            if (!hasResults && searchTerm.trim() !== '') {
+                if (!noResultsMsg) {
+                    noResultsMsg = document.createElement('div');
+                    noResultsMsg.id = 'noResultsMsg';
+                    noResultsMsg.className = 'no-results';
+                    noResultsMsg.innerHTML = `
+                        <i class="fas fa-search"></i>
+                        <div>No se encontraron consultas</div>
+                        <small style="opacity: 0.7;">Intenta con otros términos de búsqueda</small>
+                    `;
+                    document.getElementById('chatsList').appendChild(noResultsMsg);
+                }
+                noResultsMsg.style.animation = 'fadeIn 0.3s ease';
+            } else if (noResultsMsg) {
+                noResultsMsg.remove();
+            }
+        }
+
+        // Enhanced chat functionality
+        async function crearNuevoChat(primerMensaje = '') {
+            try {
+                setLoadingState(true);
+                
+                const response = await fetch('/chat/nuevo', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ 
+                        nombre: primerMensaje ? primerMensaje.substring(0, 50) + '...' : 'Nueva Consulta' 
+                    })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    if (primerMensaje) {
+                        window.location.href = `/chat/${data.chat_id}?mensaje=${encodeURIComponent(primerMensaje)}`;
+                    } else {
+                        window.location.href = `/chat/${data.chat_id}`;
+                    }
+                } else {
+                    showToast('Error al crear la consulta', 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showToast('Error al crear la consulta', 'error');
+            } finally {
+                setLoadingState(false);
+            }
+        }
+
+        // Function to handle starter prompt clicks
+        async function usarPrompt(promptText) {
+            // Add visual feedback
+            const clickedCard = event.currentTarget;
+            clickedCard.style.transform = 'translateY(-4px) scale(0.95)';
+            
+            setTimeout(() => {
+                clickedCard.style.transform = 'translateY(-8px)';
+            }, 150);
+
+            // If we're not in a chat, create new chat with this prompt
+            if (!currentChatId) {
+                await crearNuevoChat(promptText);
+            } else {
+                // If we're in a chat, just send the message
+                const input = document.getElementById('messageInput');
+                input.value = promptText;
+                input.dispatchEvent(new Event('input'));
+                input.focus();
+                
+                // Scroll to input
+                input.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+
+        function irAChat(chatId) {
+            // Add smooth transition effect
+            document.body.style.opacity = '0.7';
+            setTimeout(() => {
+                window.location.href = `/chat/${chatId}`;
+            }, 150);
+        }
+
+        async function eliminarChat(chatId) {
+            const result = await showConfirm(
+                '¿Eliminar consulta?',
+                '¿Estás seguro de que quieres eliminar esta consulta? Esta acción no se puede deshacer.',
+                'Eliminar',
+                'Cancelar'
+            );
+            
+            if (!result) return;
+
+            try {
+                setLoadingState(true);
+                
+                const response = await fetch(`/chat/${chatId}/eliminar`, {
+                    method: 'DELETE'
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    if (currentChatId === chatId) {
+                        window.location.href = '/chat';
+                    } else {
+                        // Animate removal
+                        const chatElement = document.querySelector(`[data-chat-id="${chatId}"]`);
+                        if (chatElement) {
+                            chatElement.style.animation = 'slideUp 0.3s ease reverse';
+                            setTimeout(() => {
+                                location.reload();
+                            }, 300);
+                        }
+                    }
+                    showToast('Consulta eliminada correctamente', 'success');
+                } else {
+                    showToast('Error al eliminar la consulta', 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showToast('Error al eliminar la consulta', 'error');
+            } finally {
+                setLoadingState(false);
+            }
+        }
+
+        function editarNombreChat(chatId, nombreActual) {
+            editingChatId = chatId;
+            document.getElementById('newChatName').value = nombreActual;
+            renameModal.show();
+            
+            setTimeout(() => {
+                const input = document.getElementById('newChatName');
+                input.focus();
+                input.select();
+            }, 300);
+        }
+
+        async function confirmarRenombrar() {
+            const nuevoNombre = document.getElementById('newChatName').value.trim();
+            if (!nuevoNombre) {
+                showToast('El nombre no puede estar vacío', 'error');
+                return;
+            }
+
+            try {
+                setLoadingState(true);
+                
+                const response = await fetch(`/chat/${editingChatId}/renombrar`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ nombre: nuevoNombre })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    renameModal.hide();
+                    showToast('Consulta renombrada correctamente', 'success');
+                    setTimeout(() => {
+                        location.reload();
+                    }, 1000);
+                } else {
+                    showToast('Error al renombrar la consulta', 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showToast('Error al renombrar la consulta', 'error');
+            } finally {
+                setLoadingState(false);
+            }
+        }
+
+        async function enviarMensaje() {
+            const input = document.getElementById('messageInput');
+            const mensaje = input.value.trim();
+            
+            if (!mensaje || isLoading) return;
+
+            // Si no hay chat actual, crear uno nuevo
+            if (!currentChatId) {
+                await crearNuevoChat(mensaje);
+                return;
+            }
+
+            // Enhanced loading state
+            setLoadingState(true);
+
+            // Add user message to UI with animation
+            agregarMensajeAUI(mensaje, true);
+            input.value = '';
+            input.style.height = 'auto';
+            input.dispatchEvent(new Event('input')); // Update button state
+
+            // Show enhanced typing indicator
+            const typingIndicator = document.getElementById('typingIndicator');
+            typingIndicator.classList.add('show');
+            scrollToBottom();
+
+            try {
+                const response = await fetch(`/chat/${currentChatId}/mensaje`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ contenido: mensaje })
+                });
+
+                const data = await response.json();
+                
+                // Hide typing indicator with animation
+                typingIndicator.style.opacity = '0';
+                setTimeout(() => {
+                    typingIndicator.classList.remove('show');
+                    typingIndicator.style.opacity = '1';
+                }, 300);
+
+                if (data.success) {
+                    setTimeout(() => {
+                        agregarMensajeAUI(data.respuesta, false);
+                    }, 300);
+                } else {
+                    showToast('Error al enviar el mensaje: ' + data.error, 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                typingIndicator.classList.remove('show');
+                showToast('Error al enviar el mensaje', 'error');
+            } finally {
+                setLoadingState(false);
+                input.focus();
+            }
+        }
+
+        function setLoadingState(loading) {
+            isLoading = loading;
+            const input = document.getElementById('messageInput');
+            const sendButton = document.getElementById('sendButton');
+            
+            input.disabled = loading;
+            document.body.classList.toggle('loading', loading);
+            
+            if (loading) {
+                sendButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            } else {
+                sendButton.innerHTML = '<i class="fas fa-paper-plane"></i>';
+            }
+        }
+
+        function agregarMensajeAUI(contenido, esUsuario) {
+            const messagesWrapper = document.querySelector('.messages-wrapper');
+            const emptyState = document.querySelector('.empty-state');
+            
+            // Remove empty state with animation
+            if (emptyState) {
+                emptyState.style.animation = 'fadeIn 0.3s ease reverse';
+                setTimeout(() => {
+                    emptyState.remove();
+                }, 300);
+            }
+
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${esUsuario ? 'user-message' : 'ai-message'}`;
+            messageDiv.style.opacity = '0';
+            messageDiv.style.transform = 'translateY(20px)';
+            
+            const userName = '{{ user_name or "Estudiante" }}';
+            const userInitial = userName.charAt(0).toUpperCase();
+            
+            const contenidoFinal = esUsuario ? escapeHtml(contenido) : contenido;
+            
+            messageDiv.innerHTML = `
+                <div class="message-avatar">
+                    ${esUsuario ? userInitial : '<i class="fas fa-brain"></i>'}
+                </div>
+                <div class="message-content">
+                    ${contenidoFinal}
+                </div>
+            `;
+            
+            // Insert before typing indicator if it exists
+            const typingIndicator = document.getElementById('typingIndicator');
+            if (typingIndicator && typingIndicator.classList.contains('show')) {
+                messagesWrapper.insertBefore(messageDiv, typingIndicator);
+            } else {
+                messagesWrapper.appendChild(messageDiv);
+            }
+            
+            // Animate message appearance
+            requestAnimationFrame(() => {
+                messageDiv.style.transition = 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)';
+                messageDiv.style.opacity = '1';
+                messageDiv.style.transform = 'translateY(0)';
+            });
+            
+            scrollToBottom();
+        }
+
+        function escapeHtml(text) {
+            const map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            };
+            return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+        }
+
+        function scrollToBottom() {
+            const container = document.getElementById('messagesContainer');
+            container.scrollTo({
+                top: container.scrollHeight,
+                behavior: 'smooth'
+            });
+        }
+
+        // Enhanced toast system
+        function showToast(message, type = 'info') {
+            let toastContainer = document.getElementById('toastContainer');
+            if (!toastContainer) {
+                toastContainer = document.createElement('div');
+                toastContainer.id = 'toastContainer';
+                toastContainer.className = 'toast-container position-fixed top-0 end-0 p-3';
+                toastContainer.style.zIndex = '1055';
+                document.body.appendChild(toastContainer);
+            }
+
+            const toastTypes = {
+                success: 'success',
+                error: 'danger',
+                warning: 'warning',
+                info: 'primary'
+            };
+
+            const icons = {
+                success: 'fas fa-check-circle',
+                error: 'fas fa-exclamation-circle',
+                warning: 'fas fa-exclamation-triangle',
+                info: 'fas fa-info-circle'
+            };
+
+            const toast = document.createElement('div');
+            toast.className = `toast align-items-center text-bg-${toastTypes[type] || 'primary'} border-0`;
+            toast.setAttribute('role', 'alert');
+            toast.style.animation = 'slideUp 0.3s ease';
+            toast.innerHTML = `
+                <div class="d-flex">
+                    <div class="toast-body d-flex align-items-center">
+                        <i class="${icons[type] || icons.info} me-2"></i>
+                        ${message}
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                </div>
+            `;
+            
+            toastContainer.appendChild(toast);
+            
+            const bsToast = new bootstrap.Toast(toast, { delay: type === 'error' ? 5000 : 3000 });
+            bsToast.show();
+            
+            toast.addEventListener('hidden.bs.toast', () => {
+                toast.remove();
+            });
+        }
+
+        // Enhanced confirm dialog
+        function showConfirm(title, message, confirmText = 'Confirmar', cancelText = 'Cancelar') {
+            return new Promise((resolve) => {
+                const modal = document.createElement('div');
+                modal.className = 'modal fade';
+                modal.innerHTML = `
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">
+                                    <i class="fas fa-question-circle text-warning me-2"></i>
+                                    ${title}
+                                </h5>
+                            </div>
+                            <div class="modal-body">
+                                ${message}
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                    <i class="fas fa-times me-1"></i>
+                                    ${cancelText}
+                                </button>
+                                <button type="button" class="btn btn-danger" id="confirmBtn">
+                                    <i class="fas fa-check me-1"></i>
+                                    ${confirmText}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                document.body.appendChild(modal);
+                const bsModal = new bootstrap.Modal(modal);
+                
+                modal.querySelector('#confirmBtn').addEventListener('click', () => {
+                    bsModal.hide();
+                    modal.dataset.confirmed = 'true';
+                    resolve(true);
+                });
+                
+                modal.addEventListener('hidden.bs.modal', () => {
+                    if (!modal.dataset.confirmed) {
+                        resolve(false);
+                    }
+                    modal.remove();
+                });
+                
+                bsModal.show();
+            });
+        }
+
+        // Handle URL parameters for first message
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const mensaje = urlParams.get('mensaje');
+            
+            if (mensaje && currentChatId) {
+                const input = document.getElementById('messageInput');
+                input.value = mensaje;
+                input.dispatchEvent(new Event('input'));
+                
+                // Remove parameter from URL
+                window.history.replaceState({}, document.title, window.location.pathname);
+                
+                setTimeout(() => {
+                    enviarMensaje();
+                }, 500);
+            }
+        });
+
+        // Add smooth page transitions
+        document.addEventListener('DOMContentLoaded', function() {
+            document.body.style.opacity = '0';
+            requestAnimationFrame(() => {
+                document.body.style.transition = 'opacity 0.3s ease';
+                document.body.style.opacity = '1';
+            });
+        });
+
+        // Mobile-specific optimizations
+        if (!currentChatId) {
+            // Use setTimeout to ensure all elements are rendered
+            setTimeout(() => {
+                const messagesContainer = document.getElementById('messagesContainer');
+                if (messagesContainer) {
+                    // Scroll to top of message container
+                    messagesContainer.scrollTop = 0;
+                }
+                
+                // Also scroll main window just in case
+                window.scrollTo(0, 0);
+                
+                // Optional: focus input after scroll
+                const messageInput = document.getElementById('messageInput');
+                if (messageInput && !isMobile) { // Don't auto-focus on mobile
+                    messageInput.focus();
+                }
+            }, 100); // Small delay but enough for rendering to finish
+        }
+
+        // Prevent rubber band scrolling on iOS
+        document.addEventListener('touchmove', function(e) {
+            if (e.target.closest('.messages-container, .chats-list')) {
+                return; // Allow scrolling in scrollable areas
+            }
+            e.preventDefault();
+        }, { passive: false });
+
+        // Handle safe area insets for different mobile browsers
+        function updateSafeAreaInsets() {
+            const root = document.documentElement;
+            
+            // For older browsers without env() support
+            if (!CSS.supports('padding-top', 'env(safe-area-inset-top)')) {
+                // Fallback values for older browsers
+                if (window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches) {
+                    root.style.setProperty('--safe-area-inset-top', '44px');
+                    root.style.setProperty('--safe-area-inset-bottom', '34px');
+                }
+            }
+        }
+
+        // Call on load and orientation change
+        updateSafeAreaInsets();
+        window.addEventListener('orientationchange', updateSafeAreaInsets);
+    </script>
+</body>
+</html><!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -937,961 +1907,5 @@
             background: var(--bg-secondary);
             opacity: 0.7;
         }
-</style>
-</head>
-<body>
-    <!-- Backdrop for mobile -->
-    <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="toggleSidebar()"></div>
 
-    <div class="main-container">
-        <!-- Enhanced Sidebar -->
-        <aside class="sidebar collapsed" id="sidebar">
-            <button class="theme-toggle" onclick="toggleTheme()" title="Cambiar tema">
-                <i class="fas fa-moon" id="themeIcon"></i>
-            </button>
-            
-            <div class="sidebar-header">
-                <div class="logo-section">
-                    <div class="logo-icon">
-                        <i class="fas fa-user-graduate"></i>
-                    </div>
-                    <div class="logo-text">EstudianteIA</div>
-                </div>
-                
-                <a href="/chat" class="new-chat-btn text-decoration-none">
-                    <i class="fas fa-plus"></i>
-                    Nueva Consulta
-                </a>
-            </div>
-
-            <div class="chat-search">
-                <div class="search-container">
-                    <i class="fas fa-search"></i>
-                    <input type="text" id="searchInput" placeholder="Buscar conversaciones..." oninput="buscarChats()">
-                </div>
-            </div>
-            
-            <div class="chats-list" id="chatsList">
-                {% for chat in chats %}
-                <div class="chat-item {% if chat_actual and chat.id == chat_actual.id %}active{% endif %}" 
-                     onclick="irAChat({{ chat.id }})" data-chat-id="{{ chat.id }}">
-                    <span class="chat-name">{{ chat.nombre_chat or 'Consulta sin nombre' }}</span>
-                    <div class="chat-actions">
-                        <button class="chat-action-btn" onclick="event.stopPropagation(); editarNombreChat({{ chat.id }}, '{{ chat.nombre_chat }}')" title="Renombrar">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                        <button class="chat-action-btn" onclick="event.stopPropagation(); eliminarChat({{ chat.id }})" title="Eliminar">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </div>
-                </div>
-                {% endfor %}
-            </div>
-            
-            <div class="sidebar-footer">
-                <div class="user-info">
-                    <div class="user-avatar">
-                        {{ user_name[0].upper() if user_name else 'E' }}
-                    </div>
-                    <div>
-                        <div style="font-weight: 600; font-size: 0.95rem;">{{ user_name or 'Estudiante' }}</div>
-                        <small style="opacity: 0.7; font-size: 0.85rem;">{{ user_role or 'Aprendiz' }}</small>
-                    </div>
-                </div>
-            </div>
-        </aside>
-
-        <!-- Enhanced Main Content -->
-        <main class="main-content">
-            <header class="chat-header">
-                <button class="sidebar-toggle" onclick="toggleSidebar()">
-                    <i class="fas fa-bars"></i>
-                </button>
-                <h1 class="chat-title mb-0">
-                    {% if chat_actual %}
-                        {{ chat_actual.nombre_chat or 'Consulta sin nombre' }}
-                    {% else %}
-                        Tu Asistente de Estudio IA
-                    {% endif %}
-                </h1>
-            </header>
-
-            <div class="messages-container" id="messagesContainer">
-                <div class="messages-wrapper">
-                    {% if chat_actual and mensajes %}
-                        {% for mensaje in mensajes %}
-                        <div class="message {% if mensaje.es_usuario %}user-message{% else %}ai-message{% endif %}">
-                            <div class="message-avatar">
-                                {% if mensaje.es_usuario %}
-                                    {{ user_name[0].upper() if user_name else 'E' }}
-                                {% else %}
-                                    <i class="fas fa-brain"></i>
-                                {% endif %}
-                            </div>
-                            <div class="message-content">
-                                {% if mensaje.es_usuario %}
-                                    {{ mensaje.contenido_original | e }}
-                                {% else %}
-                                    {{ mensaje.contenido_renderizado | safe }}
-                                {% endif %}
-                            </div>
-                        </div>
-                        {% endfor %}
-                    {% else %}
-                    <div class="empty-state">
-                        <div class="empty-state-icon">
-                            <i class="fas fa-graduation-cap"></i>
-                        </div>
-                        <h2>¡Hola, Estudiante!</h2>
-                        <p>Soy tu asistente personal de estudio con inteligencia artificial. Estoy aquí para ayudarte a aprender, resolver dudas, estudiar para exámenes, hacer tareas y alcanzar tus metas académicas.</p>
-                        
-                        <div class="starter-prompts">
-                            <h3>¿En qué puedo ayudarte hoy?</h3>
-                            <div class="prompts-grid">
-                                <div class="prompt-card" onclick="usarPrompt('Explícame [tema] de manera sencilla con ejemplos prácticos')">
-                                    <div class="prompt-icon">
-                                        <i class="fas fa-lightbulb"></i>
-                                    </div>
-                                    <h4>Explicar Conceptos</h4>
-                                    <p>Te ayudo a entender temas difíciles con ejemplos claros</p>
-                                </div>
-                                
-                                <div class="prompt-card" onclick="usarPrompt('Ayúdame a resolver este problema paso a paso: [describe tu problema]')">
-                                    <div class="prompt-icon">
-                                        <i class="fas fa-calculator"></i>
-                                    </div>
-                                    <h4>Resolver Problemas</h4>
-                                    <p>Resolvemos ejercicios y problemas juntos paso a paso</p>
-                                </div>
-                                
-                                <div class="prompt-card" onclick="usarPrompt('Necesito estudiar para mi examen de [materia]. ¿Puedes ayudarme a crear un plan?')">
-                                    <div class="prompt-icon">
-                                        <i class="fas fa-calendar-check"></i>
-                                    </div>
-                                    <h4>Planificar Estudio</h4>
-                                    <p>Creamos planes de estudio personalizados para tus exámenes</p>
-                                </div>
-                                
-                                <div class="prompt-card" onclick="usarPrompt('Hazme preguntas sobre [tema] para practicar lo que he aprendido')">
-                                    <div class="prompt-icon">
-                                        <i class="fas fa-question-circle"></i>
-                                    </div>
-                                    <h4>Practicar</h4>
-                                    <p>Te hago preguntas para que practiques y refuerces conocimientos</p>
-                                </div>
-                                
-                                <div class="prompt-card" onclick="usarPrompt('Ayúdame con mi tarea de [materia]: [describe la tarea]')">
-                                    <div class="prompt-icon">
-                                        <i class="fas fa-book-open"></i>
-                                    </div>
-                                    <h4>Ayuda con Tareas</h4>
-                                    <p>Te guío para completar tus tareas y proyectos</p>
-                                </div>
-                                
-                                <div class="prompt-card" onclick="usarPrompt('¿Cómo puedo mejorar mis técnicas de estudio y ser más productivo?')">
-                                    <div class="prompt-icon">
-                                        <i class="fas fa-chart-line"></i>
-                                    </div>
-                                    <h4>Mejorar Estudio</h4>
-                                    <p>Consejos y técnicas para estudiar de manera más efectiva</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    {% endif %}
-
-                    <div class="typing-indicator" id="typingIndicator">
-                        <div class="message-avatar">
-                            <i class="fas fa-brain"></i>
-                        </div>
-                        <div class="typing-dots">
-                            <div class="typing-dot"></div>
-                            <div class="typing-dot"></div>
-                            <div class="typing-dot"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="input-container">
-                <div class="input-wrapper">
-                    <textarea 
-                        class="message-input" 
-                        id="messageInput" 
-                        placeholder="Escribe tu pregunta o duda aquí... (Shift + Enter para nueva línea)"
-                        rows="1"></textarea>
-                    <button class="send-button" id="sendButton" onclick="enviarMensaje()" disabled>
-                        <i class="fas fa-paper-plane"></i>
-                    </button>
-                </div>
-            </div>
-        </main>
-    </div>
-
-    <!-- Enhanced Modal para renombrar chat -->
-    <div class="modal fade" id="renameModal" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">
-                        <i class="fas fa-edit me-2"></i>
-                        Renombrar Consulta
-                    </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <label for="newChatName" class="form-label">Nuevo nombre:</label>
-                    <input type="text" id="newChatName" class="form-control" placeholder="Ingresa el nuevo nombre de la consulta">
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                        <i class="fas fa-times me-1"></i>
-                        Cancelar
-                    </button>
-                    <button type="button" class="btn btn-primary" onclick="confirmarRenombrar()">
-                        <i class="fas fa-check me-1"></i>
-                        Guardar Cambios
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        let currentChatId = {% if chat_actual %}{{ chat_actual.id }}{% else %}null{% endif %};
-        let isLoading = false;
-        let editingChatId = null;
-        let allChats = [];
-        let renameModal;
-        let isMobile = window.innerWidth <= 768;
-
-        // Initialize
-        document.addEventListener('DOMContentLoaded', function() {
-            // Initialize Bootstrap modal
-            renameModal = new bootstrap.Modal(document.getElementById('renameModal'));
-            
-            // Store all chats for search functionality
-            const chatItems = document.querySelectorAll('.chat-item');
-            allChats = Array.from(chatItems).map(item => ({
-                id: item.dataset.chatId,
-                name: item.querySelector('.chat-name').textContent.trim(),
-                element: item
-            }));
-
-            // Mobile-specific initialization
-            initializeMobile();
-            
-            scrollToBottom();
-            loadTheme();
-            setupInputHandlers();
-            initializeAnimations();
-            
-            // Close sidebar on mobile when clicking outside
-            document.addEventListener('click', function(e) {
-                if (isMobile) {
-                    const sidebar = document.getElementById('sidebar');
-                    const sidebarToggle = document.querySelector('.sidebar-toggle');
-                    
-                    if (!sidebar.contains(e.target) && !sidebarToggle.contains(e.target)) {
-                        sidebar.classList.add('collapsed');
-                        document.getElementById('sidebarBackdrop').classList.remove('show');
-                    }
-                }
-            });
-
-            // Handle window resize
-            window.addEventListener('resize', handleResize);
-        });
-
-        function initializeMobile() {
-            isMobile = window.innerWidth <= 768;
-            
-            if (isMobile) {
-                // Ensure sidebar starts collapsed on mobile
-                const sidebar = document.getElementById('sidebar');
-                sidebar.classList.add('collapsed');
-                
-                // Prevent zoom on input focus (iOS Safari)
-                const inputs = document.querySelectorAll('input, textarea');
-                inputs.forEach(input => {
-                    input.addEventListener('focus', function() {
-                        if (window.innerWidth < 768) {
-                            this.style.fontSize = '16px';
-                        }
-                    });
-                    
-                    input.addEventListener('blur', function() {
-                        this.style.fontSize = '';
-                    });
-                });
-
-                // Add viewport height fix for mobile browsers
-                const setViewportHeight = () => {
-                    const vh = window.innerHeight * 0.01;
-                    document.documentElement.style.setProperty('--vh', `${vh}px`);
-                };
-                
-                setViewportHeight();
-                window.addEventListener('resize', setViewportHeight);
-                window.addEventListener('orientationchange', () => {
-                    setTimeout(setViewportHeight, 100);
-                });
-            }
-        }
-
-        function handleResize() {
-            const wasMobile = isMobile;
-            isMobile = window.innerWidth <= 768;
-            
-            if (wasMobile !== isMobile) {
-                const sidebar = document.getElementById('sidebar');
-                const backdrop = document.getElementById('sidebarBackdrop');
-                
-                if (!isMobile) {
-                    // Desktop - show sidebar, hide backdrop
-                    sidebar.classList.remove('collapsed');
-                    backdrop.classList.remove('show');
-                } else {
-                    // Mobile - hide sidebar
-                    sidebar.classList.add('collapsed');
-                    backdrop.classList.remove('show');
-                }
-            }
-        }
-
-        function initializeAnimations() {
-            // Animate existing messages on load
-            const messages = document.querySelectorAll('.message');
-            messages.forEach((message, index) => {
-                message.style.animationDelay = `${index * 0.1}s`;
-            });
-
-            // Add hover effects to interactive elements (not on mobile)
-            if (!isMobile) {
-                const interactiveElements = document.querySelectorAll('.chat-item, .new-chat-btn, .panel-btn, .theme-toggle');
-                interactiveElements.forEach(element => {
-                    element.addEventListener('mouseenter', function() {
-                        this.style.transform = this.style.transform + ' scale(1.02)';
-                    });
-                    element.addEventListener('mouseleave', function() {
-                        this.style.transform = this.style.transform.replace(' scale(1.02)', '');
-                    });
-                });
-            }
-        }
-
-        function setupInputHandlers() {
-            const messageInput = document.getElementById('messageInput');
-            const sendButton = document.getElementById('sendButton');
-            
-            // Auto-resize textarea with smooth animation
-            messageInput.addEventListener('input', function() {
-                this.style.height = 'auto';
-                const newHeight = Math.min(this.scrollHeight, 200);
-                this.style.height = newHeight + 'px';
-                
-                // Enable/disable send button with smooth transition
-                const hasContent = this.value.trim();
-                sendButton.disabled = !hasContent;
-                sendButton.style.opacity = hasContent ? '1' : '0.5';
-                sendButton.style.transform = hasContent ? 'scale(1)' : 'scale(0.9)';
-            });
-
-            // Enhanced Enter key handling
-            messageInput.addEventListener('keydown', function(e) {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    if (!isLoading && this.value.trim()) {
-                        enviarMensaje();
-                    }
-                }
-            });
-
-            // Handle rename modal Enter key
-            document.getElementById('newChatName').addEventListener('keydown', function(e) {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    confirmarRenombrar();
-                }
-            });
-
-            // Add focus effects (not on mobile to avoid issues)
-            if (!isMobile) {
-                messageInput.addEventListener('focus', function() {
-                    this.parentElement.style.transform = 'translateY(-2px)';
-                    this.parentElement.style.boxShadow = '0 10px 25px rgba(59, 130, 246, 0.15)';
-                });
-
-                messageInput.addEventListener('blur', function() {
-                    this.parentElement.style.transform = 'translateY(0)';
-                    this.parentElement.style.boxShadow = 'var(--shadow)';
-                });
-            }
-        }
-
-        // Enhanced theme functionality
-        function toggleTheme() {
-            const html = document.documentElement;
-            const themeIcon = document.getElementById('themeIcon');
-            const isDark = html.getAttribute('data-theme') === 'dark';
-            
-            // Add transition class for smooth theme change
-            html.style.transition = 'all 0.3s ease';
-            
-            if (isDark) {
-                html.removeAttribute('data-theme');
-                themeIcon.className = 'fas fa-moon';
-                localStorage.setItem('theme', 'light');
-            } else {
-                html.setAttribute('data-theme', 'dark');
-                themeIcon.className = 'fas fa-sun';
-                localStorage.setItem('theme', 'dark');
-            }
-
-            // Remove transition after change
-            setTimeout(() => {
-                html.style.transition = '';
-            }, 300);
-        }
-
-        function loadTheme() {
-            const savedTheme = localStorage.getItem('theme');
-            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-            const themeIcon = document.getElementById('themeIcon');
-            
-            if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
-                document.documentElement.setAttribute('data-theme', 'dark');
-                themeIcon.className = 'fas fa-sun';
-            } else {
-                themeIcon.className = 'fas fa-moon';
-            }
-        }
-
-        // Enhanced sidebar functionality
-        function toggleSidebar() {
-            const sidebar = document.getElementById('sidebar');
-            const backdrop = document.getElementById('sidebarBackdrop');
-            
-            sidebar.classList.toggle('collapsed');
-            
-            if (isMobile) {
-                backdrop.classList.toggle('show');
-            }
-        }
-
-        // Enhanced search functionality
-        function buscarChats() {
-            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-            let hasResults = false;
-            
-            allChats.forEach((chat, index) => {
-                const isVisible = chat.name.toLowerCase().includes(searchTerm);
-                chat.element.style.display = isVisible ? 'flex' : 'none';
-                
-                if (isVisible) {
-                    hasResults = true;
-                    // Add staggered animation
-                    chat.element.style.animation = 'slideUp 0.3s ease forwards';
-                    chat.element.style.animationDelay = `${index * 0.05}s`;
-                }
-            });
-
-            // Enhanced no results message
-            let noResultsMsg = document.getElementById('noResultsMsg');
-            if (!hasResults && searchTerm.trim() !== '') {
-                if (!noResultsMsg) {
-                    noResultsMsg = document.createElement('div');
-                    noResultsMsg.id = 'noResultsMsg';
-                    noResultsMsg.className = 'no-results';
-                    noResultsMsg.innerHTML = `
-                        <i class="fas fa-search"></i>
-                        <div>No se encontraron consultas</div>
-                        <small style="opacity: 0.7;">Intenta con otros términos de búsqueda</small>
-                    `;
-                    document.getElementById('chatsList').appendChild(noResultsMsg);
-                }
-                noResultsMsg.style.animation = 'fadeIn 0.3s ease';
-            } else if (noResultsMsg) {
-                noResultsMsg.remove();
-            }
-        }
-
-        // Enhanced chat functionality
-        async function crearNuevoChat(primerMensaje = '') {
-            try {
-                setLoadingState(true);
-                
-                const response = await fetch('/chat/nuevo', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ 
-                        nombre: primerMensaje ? primerMensaje.substring(0, 50) + '...' : 'Nueva Consulta' 
-                    })
-                });
-
-                const data = await response.json();
-                if (data.success) {
-                    if (primerMensaje) {
-                        window.location.href = `/chat/${data.chat_id}?mensaje=${encodeURIComponent(primerMensaje)}`;
-                    } else {
-                        window.location.href = `/chat/${data.chat_id}`;
-                    }
-                } else {
-                    showToast('Error al crear la consulta', 'error');
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                showToast('Error al crear la consulta', 'error');
-            } finally {
-                setLoadingState(false);
-            }
-        }
-
-        // Function to handle starter prompt clicks
-        async function usarPrompt(promptText) {
-            // Add visual feedback
-            const clickedCard = event.currentTarget;
-            clickedCard.style.transform = 'translateY(-4px) scale(0.95)';
-            
-            setTimeout(() => {
-                clickedCard.style.transform = 'translateY(-8px)';
-            }, 150);
-
-            // If we're not in a chat, create new chat with this prompt
-            if (!currentChatId) {
-                await crearNuevoChat(promptText);
-            } else {
-                // If we're in a chat, just send the message
-                const input = document.getElementById('messageInput');
-                input.value = promptText;
-                input.dispatchEvent(new Event('input'));
-                input.focus();
-                
-                // Scroll to input
-                input.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }
-        }
-
-        function irAChat(chatId) {
-            // Add smooth transition effect
-            document.body.style.opacity = '0.7';
-            setTimeout(() => {
-                window.location.href = `/chat/${chatId}`;
-            }, 150);
-        }
-
-        async function eliminarChat(chatId) {
-            const result = await showConfirm(
-                '¿Eliminar consulta?',
-                '¿Estás seguro de que quieres eliminar esta consulta? Esta acción no se puede deshacer.',
-                'Eliminar',
-                'Cancelar'
-            );
-            
-            if (!result) return;
-
-            try {
-                setLoadingState(true);
-                
-                const response = await fetch(`/chat/${chatId}/eliminar`, {
-                    method: 'DELETE'
-                });
-
-                const data = await response.json();
-                if (data.success) {
-                    if (currentChatId === chatId) {
-                        window.location.href = '/chat';
-                    } else {
-                        // Animate removal
-                        const chatElement = document.querySelector(`[data-chat-id="${chatId}"]`);
-                        if (chatElement) {
-                            chatElement.style.animation = 'slideUp 0.3s ease reverse';
-                            setTimeout(() => {
-                                location.reload();
-                            }, 300);
-                        }
-                    }
-                    showToast('Consulta eliminada correctamente', 'success');
-                } else {
-                    showToast('Error al eliminar la consulta', 'error');
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                showToast('Error al eliminar la consulta', 'error');
-            } finally {
-                setLoadingState(false);
-            }
-        }
-
-        function editarNombreChat(chatId, nombreActual) {
-            editingChatId = chatId;
-            document.getElementById('newChatName').value = nombreActual;
-            renameModal.show();
-            
-            setTimeout(() => {
-                const input = document.getElementById('newChatName');
-                input.focus();
-                input.select();
-            }, 300);
-        }
-
-        async function confirmarRenombrar() {
-            const nuevoNombre = document.getElementById('newChatName').value.trim();
-            if (!nuevoNombre) {
-                showToast('El nombre no puede estar vacío', 'error');
-                return;
-            }
-
-            try {
-                setLoadingState(true);
-                
-                const response = await fetch(`/chat/${editingChatId}/renombrar`, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ nombre: nuevoNombre })
-                });
-
-                const data = await response.json();
-                if (data.success) {
-                    renameModal.hide();
-                    showToast('Consulta renombrada correctamente', 'success');
-                    setTimeout(() => {
-                        location.reload();
-                    }, 1000);
-                } else {
-                    showToast('Error al renombrar la consulta', 'error');
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                showToast('Error al renombrar la consulta', 'error');
-            } finally {
-                setLoadingState(false);
-            }
-        }
-
-        async function enviarMensaje() {
-            const input = document.getElementById('messageInput');
-            const mensaje = input.value.trim();
-            
-            if (!mensaje || isLoading) return;
-
-            // Si no hay chat actual, crear uno nuevo
-            if (!currentChatId) {
-                await crearNuevoChat(mensaje);
-                return;
-            }
-
-            // Enhanced loading state
-            setLoadingState(true);
-
-            // Add user message to UI with animation
-            agregarMensajeAUI(mensaje, true);
-            input.value = '';
-            input.style.height = 'auto';
-            input.dispatchEvent(new Event('input')); // Update button state
-
-            // Show enhanced typing indicator
-            const typingIndicator = document.getElementById('typingIndicator');
-            typingIndicator.classList.add('show');
-            scrollToBottom();
-
-            try {
-                const response = await fetch(`/chat/${currentChatId}/mensaje`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ contenido: mensaje })
-                });
-
-                const data = await response.json();
-                
-                // Hide typing indicator with animation
-                typingIndicator.style.opacity = '0';
-                setTimeout(() => {
-                    typingIndicator.classList.remove('show');
-                    typingIndicator.style.opacity = '1';
-                }, 300);
-
-                if (data.success) {
-                    setTimeout(() => {
-                        agregarMensajeAUI(data.respuesta, false);
-                    }, 300);
-                } else {
-                    showToast('Error al enviar el mensaje: ' + data.error, 'error');
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                typingIndicator.classList.remove('show');
-                showToast('Error al enviar el mensaje', 'error');
-            } finally {
-                setLoadingState(false);
-                input.focus();
-            }
-        }
-
-        function setLoadingState(loading) {
-            isLoading = loading;
-            const input = document.getElementById('messageInput');
-            const sendButton = document.getElementById('sendButton');
-            
-            input.disabled = loading;
-            document.body.classList.toggle('loading', loading);
-            
-            if (loading) {
-                sendButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-            } else {
-                sendButton.innerHTML = '<i class="fas fa-paper-plane"></i>';
-            }
-        }
-
-        function agregarMensajeAUI(contenido, esUsuario) {
-            const messagesWrapper = document.querySelector('.messages-wrapper');
-            const emptyState = document.querySelector('.empty-state');
-            
-            // Remove empty state with animation
-            if (emptyState) {
-                emptyState.style.animation = 'fadeIn 0.3s ease reverse';
-                setTimeout(() => {
-                    emptyState.remove();
-                }, 300);
-            }
-
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `message ${esUsuario ? 'user-message' : 'ai-message'}`;
-            messageDiv.style.opacity = '0';
-            messageDiv.style.transform = 'translateY(20px)';
-            
-            const userName = '{{ user_name or "Estudiante" }}';
-            const userInitial = userName.charAt(0).toUpperCase();
-            
-            const contenidoFinal = esUsuario ? escapeHtml(contenido) : contenido;
-            
-            messageDiv.innerHTML = `
-                <div class="message-avatar">
-                    ${esUsuario ? userInitial : '<i class="fas fa-brain"></i>'}
-                </div>
-                <div class="message-content">
-                    ${contenidoFinal}
-                </div>
-            `;
-            
-            // Insert before typing indicator if it exists
-            const typingIndicator = document.getElementById('typingIndicator');
-            if (typingIndicator && typingIndicator.classList.contains('show')) {
-                messagesWrapper.insertBefore(messageDiv, typingIndicator);
-            } else {
-                messagesWrapper.appendChild(messageDiv);
-            }
-            
-            // Animate message appearance
-            requestAnimationFrame(() => {
-                messageDiv.style.transition = 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)';
-                messageDiv.style.opacity = '1';
-                messageDiv.style.transform = 'translateY(0)';
-            });
-            
-            scrollToBottom();
-        }
-
-        function escapeHtml(text) {
-            const map = {
-                '&': '&amp;',
-                '<': '&lt;',
-                '>': '&gt;',
-                '"': '&quot;',
-                "'": '&#039;'
-            };
-            return text.replace(/[&<>"']/g, function(m) { return map[m]; });
-        }
-
-        function scrollToBottom() {
-            const container = document.getElementById('messagesContainer');
-            container.scrollTo({
-                top: container.scrollHeight,
-                behavior: 'smooth'
-            });
-        }
-
-        // Enhanced toast system
-        function showToast(message, type = 'info') {
-            let toastContainer = document.getElementById('toastContainer');
-            if (!toastContainer) {
-                toastContainer = document.createElement('div');
-                toastContainer.id = 'toastContainer';
-                toastContainer.className = 'toast-container position-fixed top-0 end-0 p-3';
-                toastContainer.style.zIndex = '1055';
-                document.body.appendChild(toastContainer);
-            }
-
-            const toastTypes = {
-                success: 'success',
-                error: 'danger',
-                warning: 'warning',
-                info: 'primary'
-            };
-
-            const icons = {
-                success: 'fas fa-check-circle',
-                error: 'fas fa-exclamation-circle',
-                warning: 'fas fa-exclamation-triangle',
-                info: 'fas fa-info-circle'
-            };
-
-            const toast = document.createElement('div');
-            toast.className = `toast align-items-center text-bg-${toastTypes[type] || 'primary'} border-0`;
-            toast.setAttribute('role', 'alert');
-            toast.style.animation = 'slideUp 0.3s ease';
-            toast.innerHTML = `
-                <div class="d-flex">
-                    <div class="toast-body d-flex align-items-center">
-                        <i class="${icons[type] || icons.info} me-2"></i>
-                        ${message}
-                    </div>
-                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
-                </div>
-            `;
-            
-            toastContainer.appendChild(toast);
-            
-            const bsToast = new bootstrap.Toast(toast, { delay: type === 'error' ? 5000 : 3000 });
-            bsToast.show();
-            
-            toast.addEventListener('hidden.bs.toast', () => {
-                toast.remove();
-            });
-        }
-
-        // Enhanced confirm dialog
-        function showConfirm(title, message, confirmText = 'Confirmar', cancelText = 'Cancelar') {
-            return new Promise((resolve) => {
-                const modal = document.createElement('div');
-                modal.className = 'modal fade';
-                modal.innerHTML = `
-                    <div class="modal-dialog modal-dialog-centered">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h5 class="modal-title">
-                                    <i class="fas fa-question-circle text-warning me-2"></i>
-                                    ${title}
-                                </h5>
-                            </div>
-                            <div class="modal-body">
-                                ${message}
-                            </div>
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                                    <i class="fas fa-times me-1"></i>
-                                    ${cancelText}
-                                </button>
-                                <button type="button" class="btn btn-danger" id="confirmBtn">
-                                    <i class="fas fa-check me-1"></i>
-                                    ${confirmText}
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                `;
-                
-                document.body.appendChild(modal);
-                const bsModal = new bootstrap.Modal(modal);
-                
-                modal.querySelector('#confirmBtn').addEventListener('click', () => {
-                    bsModal.hide();
-                    modal.dataset.confirmed = 'true';
-                    resolve(true);
-                });
-                
-                modal.addEventListener('hidden.bs.modal', () => {
-                    if (!modal.dataset.confirmed) {
-                        resolve(false);
-                    }
-                    modal.remove();
-                });
-                
-                bsModal.show();
-            });
-        }
-
-        // Handle URL parameters for first message
-        document.addEventListener('DOMContentLoaded', function() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const mensaje = urlParams.get('mensaje');
-            
-            if (mensaje && currentChatId) {
-                const input = document.getElementById('messageInput');
-                input.value = mensaje;
-                input.dispatchEvent(new Event('input'));
-                
-                // Remove parameter from URL
-                window.history.replaceState({}, document.title, window.location.pathname);
-                
-                setTimeout(() => {
-                    enviarMensaje();
-                }, 500);
-            }
-        });
-
-        // Add smooth page transitions
-        document.addEventListener('DOMContentLoaded', function() {
-            document.body.style.opacity = '0';
-            requestAnimationFrame(() => {
-                document.body.style.transition = 'opacity 0.3s ease';
-                document.body.style.opacity = '1';
-            });
-        });
-
-        // Mobile-specific optimizations
-        if (!currentChatId) {
-            // Use setTimeout to ensure all elements are rendered
-            setTimeout(() => {
-                const messagesContainer = document.getElementById('messagesContainer');
-                if (messagesContainer) {
-                    // Scroll to top of message container
-                    messagesContainer.scrollTop = 0;
-                }
-                
-                // Also scroll main window just in case
-                window.scrollTo(0, 0);
-                
-                // Optional: focus input after scroll
-                const messageInput = document.getElementById('messageInput');
-                if (messageInput && !isMobile) { // Don't auto-focus on mobile
-                    messageInput.focus();
-                }
-            }, 100); // Small delay but enough for rendering to finish
-        }
-
-        // Prevent rubber band scrolling on iOS
-        document.addEventListener('touchmove', function(e) {
-            if (e.target.closest('.messages-container, .chats-list')) {
-                return; // Allow scrolling in scrollable areas
-            }
-            e.preventDefault();
-        }, { passive: false });
-
-        // Handle safe area insets for different mobile browsers
-        function updateSafeAreaInsets() {
-            const root = document.documentElement;
-            
-            // For older browsers without env() support
-            if (!CSS.supports('padding-top', 'env(safe-area-inset-top)')) {
-                // Fallback values for older browsers
-                if (window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches) {
-                    root.style.setProperty('--safe-area-inset-top', '44px');
-                    root.style.setProperty('--safe-area-inset-bottom', '34px');
-                }
-            }
-        }
-
-        // Call on load and orientation change
-        updateSafeAreaInsets();
-        window.addEventListener('orientationchange', updateSafeAreaInsets);
-    </script>
-</body>
-</html>
+        .
