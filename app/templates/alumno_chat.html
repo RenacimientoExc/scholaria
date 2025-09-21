@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chat IA - Estudiante</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
@@ -55,37 +55,20 @@
             box-sizing: border-box;
         }
 
-        /* FIX CRÍTICO PARA MÓVILES */
-        html {
-            height: 100%;
-            /* Evita scroll en iOS Safari */
-            height: -webkit-fill-available;
-        }
-
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
             background: var(--bg-main);
             color: var(--text-primary);
             overflow: hidden;
             height: 100vh;
-            /* Usa el viewport disponible real en móviles */
-            height: -webkit-fill-available;
             font-feature-settings: 'cv11', 'ss01';
-            /* Evita zoom en inputs en iOS */
-            -webkit-text-size-adjust: 100%;
         }
 
         .main-container {
             display: flex;
             height: 100vh;
-            height: -webkit-fill-available;
             overflow: hidden;
             position: relative;
-            /* Soporte para notch/barra de estado */
-            padding-top: env(safe-area-inset-top);
-            padding-bottom: env(safe-area-inset-bottom);
-            padding-left: env(safe-area-inset-left);
-            padding-right: env(safe-area-inset-right);
         }
 
         /* Enhanced Sidebar */
@@ -433,9 +416,6 @@
             overflow: hidden;
             transition: var(--transition);
             margin-left: 0;
-            /* CRÍTICO: Altura específica para móviles */
-            height: 100%;
-            min-height: 0;
         }
 
         .sidebar.collapsed + .main-content {
@@ -444,7 +424,6 @@
 
         .chat-header {
             height: var(--header-height);
-            min-height: var(--header-height);
             display: flex;
             align-items: center;
             padding: 0 2rem;
@@ -453,7 +432,6 @@
             backdrop-filter: blur(20px);
             gap: 1rem;
             position: relative;
-            flex-shrink: 0;
         }
 
         [data-theme="dark"] .chat-header {
@@ -497,17 +475,13 @@
             -webkit-text-fill-color: transparent;
         }
 
-        /* Enhanced Messages - ALTURA CRÍTICA PARA MÓVILES */
+        /* Enhanced Messages */
         .messages-container {
             flex: 1;
             overflow-y: auto;
             background: var(--bg-main);
             position: relative;
             scroll-behavior: smooth;
-            /* CRÍTICO: min-height 0 permite que flex funcione correctamente */
-            min-height: 0;
-            /* Mejora scrolling en iOS */
-            -webkit-overflow-scrolling: touch;
         }
 
         .messages-container::before {
@@ -530,8 +504,6 @@
             padding: 2rem 1rem;
             position: relative;
             z-index: 1;
-            /* CRÍTICO: Padding bottom extra para móviles */
-            padding-bottom: calc(2rem + env(safe-area-inset-bottom, 20px));
         }
 
         .message {
@@ -788,15 +760,12 @@
             color: var(--text-primary);
         }
 
-        /* Enhanced Input Area - FIX CRÍTICO PARA MÓVILES */
+        /* Enhanced Input Area */
         .input-container {
             padding: 2rem;
             background: var(--bg-main);
             border-top: 1px solid var(--border);
             position: relative;
-            flex-shrink: 0;
-            /* CRÍTICO: Padding bottom para safe area */
-            padding-bottom: calc(2rem + env(safe-area-inset-bottom, 0px));
         }
 
         .input-container::before {
@@ -832,9 +801,6 @@
             color: var(--text-primary);
             box-shadow: var(--shadow);
             line-height: 1.5;
-            /* CRÍTICO: Evita zoom en iOS */
-            -webkit-appearance: none;
-            -webkit-text-size-adjust: 100%;
         }
 
         .message-input:focus {
@@ -1003,30 +969,11 @@
             background: var(--text-muted);
         }
 
-        /* MOBILE RESPONSIVE - FIXES CRÍTICOS */
+        /* Mobile Responsive */
         @media (max-width: 768px) {
             :root {
                 --sidebar-width: 300px;
-                --header-height: 60px; /* Reducido para móviles */
-            }
-
-            /* Viewport height fix para móviles */
-            html {
-                height: 100vh;
-                height: -webkit-fill-available;
-            }
-
-            body {
-                height: 100vh;
-                height: -webkit-fill-available;
-                position: fixed;
-                width: 100%;
-            }
-
-            .main-container {
-                height: 100vh;
-                height: -webkit-fill-available;
-                position: relative;
+                --header-height: 64px;
             }
 
             .sidebar {
@@ -1034,95 +981,35 @@
                 left: 0;
                 top: 0;
                 height: 100vh;
-                height: -webkit-fill-available;
                 z-index: 1050;
-                transform: translateX(-100%);
-                transition: transform 0.3s ease;
-            }
-
-            .sidebar:not(.collapsed) {
-                transform: translateX(0);
-            }
-
-            .main-content {
-                width: 100%;
-                height: 100vh;
-                height: -webkit-fill-available;
             }
 
             .chat-header {
                 padding: 0 1rem;
-                height: var(--header-height);
-                min-height: var(--header-height);
-            }
-
-            .chat-title {
-                font-size: 1.1rem;
-            }
-
-            .messages-container {
-                /* CRÍTICO: Altura específica calculada */
-                height: calc(100vh - var(--header-height) - 120px);
-                height: calc(-webkit-fill-available - var(--header-height) - 120px);
             }
 
             .messages-wrapper {
                 padding: 1.5rem 1rem;
-                /* CRÍTICO: Extra padding bottom para safe area */
-                padding-bottom: calc(1.5rem + env(safe-area-inset-bottom, 20px));
             }
 
             .input-container {
-                padding: 1rem;
-                /* CRÍTICO: Padding bottom específico para móviles */
-                padding-bottom: calc(1rem + env(safe-area-inset-bottom, 20px));
-                position: relative;
-                /* Evita que el teclado empuje el input */
-                bottom: 0;
+                padding: 1.5rem 1rem;
             }
 
             .message {
                 margin-bottom: 1.5rem;
             }
 
-            .message-avatar {
-                width: 36px;
-                height: 36px;
-                font-size: 0.9rem;
-            }
-
-            .message-input {
-                font-size: 16px; /* CRÍTICO: Evita zoom en iOS */
-                padding: 0.875rem 3.5rem 0.875rem 1rem;
-                min-height: 50px;
-            }
-
-            .send-button {
-                width: 40px;
-                height: 40px;
-                right: 0.5rem;
-                bottom: 0.5rem;
-            }
-
             .empty-state {
                 padding: 2rem 1rem;
-                height: calc(100vh - var(--header-height) - 120px);
-                height: calc(-webkit-fill-available - var(--header-height) - 120px);
-                justify-content: flex-start;
-                padding-top: 4rem;
             }
 
             .empty-state-icon {
-                font-size: 3.5rem;
+                font-size: 4rem;
             }
 
             .empty-state h2 {
-                font-size: 1.4rem;
-            }
-
-            .empty-state p {
-                font-size: 1rem;
-                margin-bottom: 2rem;
+                font-size: 1.5rem;
             }
 
             .prompts-grid {
@@ -1148,10 +1035,6 @@
         }
 
         @media (max-width: 576px) {
-            :root {
-                --header-height: 56px; /* Más pequeño en móviles pequeños */
-            }
-
             .sidebar-header {
                 padding: 1rem;
             }
@@ -1168,106 +1051,16 @@
                 padding: 1rem;
             }
 
-            .input-container {
-                padding: 0.75rem;
-                padding-bottom: calc(0.75rem + env(safe-area-inset-bottom, 15px));
-            }
-
             .message-input {
-                padding: 0.75rem 3.25rem 0.75rem 0.875rem;
-                font-size: 16px; /* CRÍTICO: Mantener 16px para evitar zoom */
-                border-radius: 12px;
+                padding: 0.875rem 3.5rem 0.875rem 1rem;
+                font-size: 0.95rem;
             }
 
             .send-button {
-                width: 36px;
-                height: 36px;
-                right: 0.375rem;
-                bottom: 0.375rem;
-            }
-
-            .chat-header {
-                padding: 0 0.75rem;
-            }
-
-            .messages-wrapper {
-                padding: 1rem 0.75rem;
-            }
-
-            .message {
-                gap: 0.75rem;
-            }
-
-            .messages-container {
-                height: calc(100vh - var(--header-height) - 100px);
-                height: calc(-webkit-fill-available - var(--header-height) - 100px);
-            }
-
-            .empty-state {
-                height: calc(100vh - var(--header-height) - 100px);
-                height: calc(-webkit-fill-available - var(--header-height) - 100px);
-                padding: 1.5rem 0.75rem;
-            }
-        }
-
-        /* LANDSCAPE MODE FIXES */
-        @media (max-height: 500px) and (orientation: landscape) {
-            .empty-state {
-                padding-top: 1rem;
-            }
-
-            .empty-state-icon {
-                font-size: 2.5rem;
-                margin-bottom: 0.5rem;
-            }
-
-            .empty-state h2 {
-                font-size: 1.2rem;
-                margin-bottom: 0.5rem;
-            }
-
-            .empty-state p {
-                font-size: 0.9rem;
-                margin-bottom: 1rem;
-            }
-
-            .prompts-grid {
-                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-                gap: 0.75rem;
-            }
-
-            .prompt-card {
-                padding: 1rem 0.75rem;
-            }
-
-            .input-container {
-                padding: 0.5rem;
-                padding-bottom: calc(0.5rem + env(safe-area-inset-bottom, 10px));
-            }
-
-            .messages-container {
-                height: calc(100vh - var(--header-height) - 80px);
-                height: calc(-webkit-fill-available - var(--header-height) - 80px);
-            }
-        }
-
-        /* iOS SPECIFIC FIXES */
-        @supports (-webkit-touch-callout: none) {
-            .input-container {
-                /* Fix para teclado iOS */
-                padding-bottom: calc(2rem + env(keyboard-inset-height, env(safe-area-inset-bottom, 0px)));
-            }
-
-            @media (max-width: 768px) {
-                .input-container {
-                    padding-bottom: calc(1rem + env(keyboard-inset-height, env(safe-area-inset-bottom, 20px)));
-                }
-            }
-
-            @media (max-width: 576px) {
-                .input-container {
-                    padding-bottom: calc(0.75rem + env(keyboard-inset-height, env(safe-area-inset-bottom, 15px)));
-                }
+                width: 40px;
+                height: 40px;
+                right: 0.5rem;
+                bottom: 0.5rem;
             }
         }
 
@@ -1322,7 +1115,6 @@
             transition: var(--transition);
             background: var(--bg-main);
             color: var(--text-primary);
-            font-size: 16px; /* CRÍTICO: Evita zoom en móviles */
         }
 
         .form-control:focus {
@@ -1359,38 +1151,15 @@
             border-color: var(--primary);
             color: var(--text-primary);
         }
-
-        /* ADDITIONAL MOBILE KEYBOARD HANDLING */
-        .keyboard-open {
-            height: 100vh !important;
-        }
-
-        @media (max-width: 768px) {
-            /* Detectar cuando el teclado está abierto */
-            .main-container.keyboard-active .messages-container {
-                height: calc(50vh - var(--header-height)) !important;
-            }
-
-            .main-container.keyboard-active .input-container {
-                position: fixed;
-                bottom: 0;
-                left: 0;
-                right: 0;
-                z-index: 1000;
-                background: var(--bg-main);
-                border-top: 1px solid var(--border);
-                box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.1);
-            }
-        }
     </style>
 </head>
 <body>
     <!-- Backdrop for mobile -->
     <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="toggleSidebar()"></div>
 
-    <div class="main-container" id="mainContainer">
+    <div class="main-container">
         <!-- Enhanced Sidebar -->
-        <aside class="sidebar collapsed" id="sidebar">
+        <aside class="sidebar" id="sidebar">
             <button class="theme-toggle" onclick="toggleTheme()" title="Cambiar tema">
                 <i class="fas fa-moon" id="themeIcon"></i>
             </button>
@@ -1417,15 +1186,30 @@
             </div>
             
             <div class="chats-list" id="chatsList">
-                <!-- Los chats se cargarían aquí dinámicamente -->
+                {% for chat in chats %}
+                <div class="chat-item {% if chat_actual and chat.id == chat_actual.id %}active{% endif %}" 
+                     onclick="irAChat({{ chat.id }})" data-chat-id="{{ chat.id }}">
+                    <span class="chat-name">{{ chat.nombre_chat or 'Consulta sin nombre' }}</span>
+                    <div class="chat-actions">
+                        <button class="chat-action-btn" onclick="event.stopPropagation(); editarNombreChat({{ chat.id }}, '{{ chat.nombre_chat }}')" title="Renombrar">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="chat-action-btn" onclick="event.stopPropagation(); eliminarChat({{ chat.id }})" title="Eliminar">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+                {% endfor %}
             </div>
             
             <div class="sidebar-footer">
                 <div class="user-info">
-                    <div class="user-avatar">E</div>
+                    <div class="user-avatar">
+                        {{ user_name[0].upper() if user_name else 'E' }}
+                    </div>
                     <div>
-                        <div style="font-weight: 600; font-size: 0.95rem;">Estudiante</div>
-                        <small style="opacity: 0.7; font-size: 0.85rem;">Aprendiz</small>
+                        <div style="font-weight: 600; font-size: 0.95rem;">{{ user_name or 'Estudiante' }}</div>
+                        <small style="opacity: 0.7; font-size: 0.85rem;">{{ user_role or 'Aprendiz' }}</small>
                     </div>
                 </div>
             </div>
@@ -1437,11 +1221,37 @@
                 <button class="sidebar-toggle" onclick="toggleSidebar()">
                     <i class="fas fa-bars"></i>
                 </button>
-                <h1 class="chat-title mb-0">Tu Asistente de Estudio IA</h1>
+                <h1 class="chat-title mb-0">
+                    {% if chat_actual %}
+                        {{ chat_actual.nombre_chat or 'Consulta sin nombre' }}
+                    {% else %}
+                        Tu Asistente de Estudio IA
+                    {% endif %}
+                </h1>
             </header>
 
             <div class="messages-container" id="messagesContainer">
                 <div class="messages-wrapper">
+                    {% if chat_actual and mensajes %}
+                        {% for mensaje in mensajes %}
+                        <div class="message {% if mensaje.es_usuario %}user-message{% else %}ai-message{% endif %}">
+                            <div class="message-avatar">
+                                {% if mensaje.es_usuario %}
+                                    {{ user_name[0].upper() if user_name else 'E' }}
+                                {% else %}
+                                    <i class="fas fa-brain"></i>
+                                {% endif %}
+                            </div>
+                            <div class="message-content">
+                                {% if mensaje.es_usuario %}
+                                    {{ mensaje.contenido_original | e }}
+                                {% else %}
+                                    {{ mensaje.contenido_renderizado | safe }}
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
                     <div class="empty-state">
                         <div class="empty-state-icon">
                             <i class="fas fa-graduation-cap"></i>
@@ -1502,6 +1312,7 @@
                             </div>
                         </div>
                     </div>
+                    {% endif %}
 
                     <div class="typing-indicator" id="typingIndicator">
                         <div class="message-avatar">
@@ -1521,7 +1332,7 @@
                     <textarea 
                         class="message-input" 
                         id="messageInput" 
-                        placeholder="Escribe tu pregunta o duda aquí..."
+                        placeholder="Escribe tu pregunta o duda aquí... (Shift + Enter para nueva línea)"
                         rows="1"></textarea>
                     <button class="send-button" id="sendButton" onclick="enviarMensaje()" disabled>
                         <i class="fas fa-paper-plane"></i>
@@ -1531,54 +1342,60 @@
         </main>
     </div>
 
+    <!-- Enhanced Modal para renombrar chat -->
+    <div class="modal fade" id="renameModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-edit me-2"></i>
+                        Renombrar Consulta
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <label for="newChatName" class="form-label">Nuevo nombre:</label>
+                    <input type="text" id="newChatName" class="form-control" placeholder="Ingresa el nuevo nombre de la consulta">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-1"></i>
+                        Cancelar
+                    </button>
+                    <button type="button" class="btn btn-primary" onclick="confirmarRenombrar()">
+                        <i class="fas fa-check me-1"></i>
+                        Guardar Cambios
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        let currentChatId = null;
+        let currentChatId = {% if chat_actual %}{{ chat_actual.id }}{% else %}null{% endif %};
         let isLoading = false;
         let editingChatId = null;
         let allChats = [];
         let renameModal;
 
-        // MOBILE KEYBOARD DETECTION
-        let initialViewportHeight = window.visualViewport ? window.visualViewport.height : window.innerHeight;
-        
-        function handleViewportChange() {
-            const currentHeight = window.visualViewport ? window.visualViewport.height : window.innerHeight;
-            const heightDifference = initialViewportHeight - currentHeight;
-            const mainContainer = document.getElementById('mainContainer');
-            
-            // Si la diferencia es mayor a 150px, probablemente el teclado está abierto
-            if (heightDifference > 150) {
-                mainContainer.classList.add('keyboard-active');
-                document.body.style.height = currentHeight + 'px';
-            } else {
-                mainContainer.classList.remove('keyboard-active');
-                document.body.style.height = '100vh';
-            }
-            
-            // Scroll al final cuando se abre el teclado
-            setTimeout(() => {
-                const messagesContainer = document.getElementById('messagesContainer');
-                if (messagesContainer) {
-                    messagesContainer.scrollTop = messagesContainer.scrollHeight;
-                }
-            }, 100);
-        }
-
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
-            scrollToTop();
+            // Initialize Bootstrap modal
+            renameModal = new bootstrap.Modal(document.getElementById('renameModal'));
+            
+            // Store all chats for search functionality
+            const chatItems = document.querySelectorAll('.chat-item');
+            allChats = Array.from(chatItems).map(item => ({
+                id: item.dataset.chatId,
+                name: item.querySelector('.chat-name').textContent.trim(),
+                element: item
+            }));
+
+            scrollToBottom();
             loadTheme();
             setupInputHandlers();
             initializeAnimations();
-            setupMobileHandlers();
-            
-            // Handle viewport changes for mobile keyboard
-            if (window.visualViewport) {
-                window.visualViewport.addEventListener('resize', handleViewportChange);
-            } else {
-                window.addEventListener('resize', handleViewportChange);
-            }
             
             // Close sidebar on mobile when clicking outside
             document.addEventListener('click', function(e) {
@@ -1594,43 +1411,21 @@
             });
         });
 
-        function setupMobileHandlers() {
-            const messageInput = document.getElementById('messageInput');
-            
-            // Manejar focus en móviles
-            messageInput.addEventListener('focus', function() {
-                if (window.innerWidth <= 768) {
-                    setTimeout(() => {
-                        this.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-                    }, 300);
-                }
-            });
-            
-            // Prevenir zoom en iOS
-            messageInput.addEventListener('touchstart', function() {
-                if (/iPad|iPhone|iPod/.test(navigator.userAgent)) {
-                    this.style.fontSize = '16px';
-                }
-            });
-        }
-
         function initializeAnimations() {
+            // Animate existing messages on load
             const messages = document.querySelectorAll('.message');
             messages.forEach((message, index) => {
                 message.style.animationDelay = `${index * 0.1}s`;
             });
 
+            // Add hover effects to interactive elements
             const interactiveElements = document.querySelectorAll('.chat-item, .new-chat-btn, .panel-btn, .theme-toggle');
             interactiveElements.forEach(element => {
                 element.addEventListener('mouseenter', function() {
-                    if (window.innerWidth > 768) { // Solo en desktop
-                        this.style.transform = this.style.transform + ' scale(1.02)';
-                    }
+                    this.style.transform = this.style.transform + ' scale(1.02)';
                 });
                 element.addEventListener('mouseleave', function() {
-                    if (window.innerWidth > 768) {
-                        this.style.transform = this.style.transform.replace(' scale(1.02)', '');
-                    }
+                    this.style.transform = this.style.transform.replace(' scale(1.02)', '');
                 });
             });
         }
@@ -1639,17 +1434,20 @@
             const messageInput = document.getElementById('messageInput');
             const sendButton = document.getElementById('sendButton');
             
+            // Auto-resize textarea with smooth animation
             messageInput.addEventListener('input', function() {
                 this.style.height = 'auto';
                 const newHeight = Math.min(this.scrollHeight, 200);
                 this.style.height = newHeight + 'px';
                 
+                // Enable/disable send button with smooth transition
                 const hasContent = this.value.trim();
                 sendButton.disabled = !hasContent;
                 sendButton.style.opacity = hasContent ? '1' : '0.5';
                 sendButton.style.transform = hasContent ? 'scale(1)' : 'scale(0.9)';
             });
 
+            // Enhanced Enter key handling
             messageInput.addEventListener('keydown', function(e) {
                 if (e.key === 'Enter' && !e.shiftKey) {
                     e.preventDefault();
@@ -1659,26 +1457,33 @@
                 }
             });
 
-            messageInput.addEventListener('focus', function() {
-                if (window.innerWidth > 768) {
-                    this.parentElement.style.transform = 'translateY(-2px)';
-                    this.parentElement.style.boxShadow = '0 10px 25px rgba(59, 130, 246, 0.15)';
+            // Handle rename modal Enter key
+            document.getElementById('newChatName').addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    confirmarRenombrar();
                 }
+            });
+
+            // Add focus effects
+            messageInput.addEventListener('focus', function() {
+                this.parentElement.style.transform = 'translateY(-2px)';
+                this.parentElement.style.boxShadow = '0 10px 25px rgba(59, 130, 246, 0.15)';
             });
 
             messageInput.addEventListener('blur', function() {
-                if (window.innerWidth > 768) {
-                    this.parentElement.style.transform = 'translateY(0)';
-                    this.parentElement.style.boxShadow = 'var(--shadow)';
-                }
+                this.parentElement.style.transform = 'translateY(0)';
+                this.parentElement.style.boxShadow = 'var(--shadow)';
             });
         }
 
+        // Enhanced theme functionality
         function toggleTheme() {
             const html = document.documentElement;
             const themeIcon = document.getElementById('themeIcon');
             const isDark = html.getAttribute('data-theme') === 'dark';
             
+            // Add transition class for smooth theme change
             html.style.transition = 'all 0.3s ease';
             
             if (isDark) {
@@ -1691,6 +1496,7 @@
                 localStorage.setItem('theme', 'dark');
             }
 
+            // Remove transition after change
             setTimeout(() => {
                 html.style.transition = '';
             }, 300);
@@ -1709,6 +1515,7 @@
             }
         }
 
+        // Enhanced sidebar functionality
         function toggleSidebar() {
             const sidebar = document.getElementById('sidebar');
             const backdrop = document.getElementById('sidebarBackdrop');
@@ -1720,7 +1527,79 @@
             }
         }
 
-        function usarPrompt(promptText) {
+        // Enhanced search functionality
+        function buscarChats() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            let hasResults = false;
+            
+            allChats.forEach((chat, index) => {
+                const isVisible = chat.name.toLowerCase().includes(searchTerm);
+                chat.element.style.display = isVisible ? 'flex' : 'none';
+                
+                if (isVisible) {
+                    hasResults = true;
+                    // Add staggered animation
+                    chat.element.style.animation = 'slideUp 0.3s ease forwards';
+                    chat.element.style.animationDelay = `${index * 0.05}s`;
+                }
+            });
+
+            // Enhanced no results message
+            let noResultsMsg = document.getElementById('noResultsMsg');
+            if (!hasResults && searchTerm.trim() !== '') {
+                if (!noResultsMsg) {
+                    noResultsMsg = document.createElement('div');
+                    noResultsMsg.id = 'noResultsMsg';
+                    noResultsMsg.className = 'no-results';
+                    noResultsMsg.innerHTML = `
+                        <i class="fas fa-search"></i>
+                        <div>No se encontraron consultas</div>
+                        <small style="opacity: 0.7;">Intenta con otros términos de búsqueda</small>
+                    `;
+                    document.getElementById('chatsList').appendChild(noResultsMsg);
+                }
+                noResultsMsg.style.animation = 'fadeIn 0.3s ease';
+            } else if (noResultsMsg) {
+                noResultsMsg.remove();
+            }
+        }
+
+        // Enhanced chat functionality
+        async function crearNuevoChat(primerMensaje = '') {
+            try {
+                setLoadingState(true);
+                
+                const response = await fetch('/chat/nuevo', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ 
+                        nombre: primerMensaje ? primerMensaje.substring(0, 50) + '...' : 'Nueva Consulta' 
+                    })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    if (primerMensaje) {
+                        window.location.href = `/chat/${data.chat_id}?mensaje=${encodeURIComponent(primerMensaje)}`;
+                    } else {
+                        window.location.href = `/chat/${data.chat_id}`;
+                    }
+                } else {
+                    showToast('Error al crear la consulta', 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showToast('Error al crear la consulta', 'error');
+            } finally {
+                setLoadingState(false);
+            }
+        }
+
+        // Function to handle starter prompt clicks
+        async function usarPrompt(promptText) {
+            // Add visual feedback
             const clickedCard = event.currentTarget;
             clickedCard.style.transform = 'translateY(-4px) scale(0.95)';
             
@@ -1728,49 +1607,179 @@
                 clickedCard.style.transform = 'translateY(-8px)';
             }, 150);
 
-            const input = document.getElementById('messageInput');
-            input.value = promptText;
-            input.dispatchEvent(new Event('input'));
-            input.focus();
-            
-            // Scroll suave al input en móviles
-            if (window.innerWidth <= 768) {
-                setTimeout(() => {
-                    input.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-                }, 100);
+            // If we're not in a chat, create new chat with this prompt
+            if (!currentChatId) {
+                await crearNuevoChat(promptText);
+            } else {
+                // If we're in a chat, just send the message
+                const input = document.getElementById('messageInput');
+                input.value = promptText;
+                input.dispatchEvent(new Event('input'));
+                input.focus();
+                
+                // Scroll to input
+                input.scrollIntoView({ behavior: 'smooth', block: 'center' });
             }
         }
 
-        function enviarMensaje() {
+        function irAChat(chatId) {
+            // Add smooth transition effect
+            document.body.style.opacity = '0.7';
+            setTimeout(() => {
+                window.location.href = `/chat/${chatId}`;
+            }, 150);
+        }
+
+        async function eliminarChat(chatId) {
+            const result = await showConfirm(
+                '¿Eliminar consulta?',
+                '¿Estás seguro de que quieres eliminar esta consulta? Esta acción no se puede deshacer.',
+                'Eliminar',
+                'Cancelar'
+            );
+            
+            if (!result) return;
+
+            try {
+                setLoadingState(true);
+                
+                const response = await fetch(`/chat/${chatId}/eliminar`, {
+                    method: 'DELETE'
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    if (currentChatId === chatId) {
+                        window.location.href = '/chat';
+                    } else {
+                        // Animate removal
+                        const chatElement = document.querySelector(`[data-chat-id="${chatId}"]`);
+                        if (chatElement) {
+                            chatElement.style.animation = 'slideUp 0.3s ease reverse';
+                            setTimeout(() => {
+                                location.reload();
+                            }, 300);
+                        }
+                    }
+                    showToast('Consulta eliminada correctamente', 'success');
+                } else {
+                    showToast('Error al eliminar la consulta', 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showToast('Error al eliminar la consulta', 'error');
+            } finally {
+                setLoadingState(false);
+            }
+        }
+
+        function editarNombreChat(chatId, nombreActual) {
+            editingChatId = chatId;
+            document.getElementById('newChatName').value = nombreActual;
+            renameModal.show();
+            
+            setTimeout(() => {
+                const input = document.getElementById('newChatName');
+                input.focus();
+                input.select();
+            }, 300);
+        }
+
+        async function confirmarRenombrar() {
+            const nuevoNombre = document.getElementById('newChatName').value.trim();
+            if (!nuevoNombre) {
+                showToast('El nombre no puede estar vacío', 'error');
+                return;
+            }
+
+            try {
+                setLoadingState(true);
+                
+                const response = await fetch(`/chat/${editingChatId}/renombrar`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ nombre: nuevoNombre })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    renameModal.hide();
+                    showToast('Consulta renombrada correctamente', 'success');
+                    setTimeout(() => {
+                        location.reload();
+                    }, 1000);
+                } else {
+                    showToast('Error al renombrar la consulta', 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showToast('Error al renombrar la consulta', 'error');
+            } finally {
+                setLoadingState(false);
+            }
+        }
+
+        async function enviarMensaje() {
             const input = document.getElementById('messageInput');
             const mensaje = input.value.trim();
             
             if (!mensaje || isLoading) return;
 
-            console.log('Enviando mensaje:', mensaje);
-            
-            // Simulación de envío
+            // Si no hay chat actual, crear uno nuevo
+            if (!currentChatId) {
+                await crearNuevoChat(mensaje);
+                return;
+            }
+
+            // Enhanced loading state
             setLoadingState(true);
+
+            // Add user message to UI with animation
             agregarMensajeAUI(mensaje, true);
             input.value = '';
             input.style.height = 'auto';
-            input.dispatchEvent(new Event('input'));
+            input.dispatchEvent(new Event('input')); // Update button state
 
+            // Show enhanced typing indicator
             const typingIndicator = document.getElementById('typingIndicator');
             typingIndicator.classList.add('show');
             scrollToBottom();
 
-            // Simular respuesta después de 2 segundos
-            setTimeout(() => {
+            try {
+                const response = await fetch(`/chat/${currentChatId}/mensaje`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ contenido: mensaje })
+                });
+
+                const data = await response.json();
+                
+                // Hide typing indicator with animation
                 typingIndicator.style.opacity = '0';
                 setTimeout(() => {
                     typingIndicator.classList.remove('show');
                     typingIndicator.style.opacity = '1';
-                    agregarMensajeAUI('Esta es una respuesta de ejemplo del asistente IA. En una implementación real, aquí vendría la respuesta procesada del servidor.', false);
-                    setLoadingState(false);
-                    input.focus();
                 }, 300);
-            }, 2000);
+
+                if (data.success) {
+                    setTimeout(() => {
+                        agregarMensajeAUI(data.respuesta, false);
+                    }, 300);
+                } else {
+                    showToast('Error al enviar el mensaje: ' + data.error, 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                typingIndicator.classList.remove('show');
+                showToast('Error al enviar el mensaje', 'error');
+            } finally {
+                setLoadingState(false);
+                input.focus();
+            }
         }
 
         function setLoadingState(loading) {
@@ -1792,6 +1801,7 @@
             const messagesWrapper = document.querySelector('.messages-wrapper');
             const emptyState = document.querySelector('.empty-state');
             
+            // Remove empty state with animation
             if (emptyState) {
                 emptyState.style.animation = 'fadeIn 0.3s ease reverse';
                 setTimeout(() => {
@@ -1804,7 +1814,9 @@
             messageDiv.style.opacity = '0';
             messageDiv.style.transform = 'translateY(20px)';
             
-            const userInitial = 'E';
+            const userName = '{{ user_name or "Estudiante" }}';
+            const userInitial = userName.charAt(0).toUpperCase();
+            
             const contenidoFinal = esUsuario ? escapeHtml(contenido) : contenido;
             
             messageDiv.innerHTML = `
@@ -1816,6 +1828,7 @@
                 </div>
             `;
             
+            // Insert before typing indicator if it exists
             const typingIndicator = document.getElementById('typingIndicator');
             if (typingIndicator && typingIndicator.classList.contains('show')) {
                 messagesWrapper.insertBefore(messageDiv, typingIndicator);
@@ -1823,6 +1836,7 @@
                 messagesWrapper.appendChild(messageDiv);
             }
             
+            // Animate message appearance
             requestAnimationFrame(() => {
                 messageDiv.style.transition = 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)';
                 messageDiv.style.opacity = '1';
@@ -1849,25 +1863,6 @@
                 top: container.scrollHeight,
                 behavior: 'smooth'
             });
-        }
-
-        function scrollToTop() {
-            const container = document.getElementById('messagesContainer');
-            if (container) {
-                container.scrollTop = 0;
-            }
-            window.scrollTo(0, 0);
-            
-            const messageInput = document.getElementById('messageInput');
-            if (messageInput) {
-                messageInput.focus();
-            }
-        }
-
-        function buscarChats() {
-            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-            // Implementar lógica de búsqueda aquí
-            console.log('Buscando:', searchTerm);
         }
 
         // Enhanced toast system
@@ -1919,23 +1914,85 @@
             });
         }
 
+        // Enhanced confirm dialog
+        function showConfirm(title, message, confirmText = 'Confirmar', cancelText = 'Cancelar') {
+            return new Promise((resolve) => {
+                const modal = document.createElement('div');
+                modal.className = 'modal fade';
+                modal.innerHTML = `
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">
+                                    <i class="fas fa-question-circle text-warning me-2"></i>
+                                    ${title}
+                                </h5>
+                            </div>
+                            <div class="modal-body">
+                                ${message}
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                    <i class="fas fa-times me-1"></i>
+                                    ${cancelText}
+                                </button>
+                                <button type="button" class="btn btn-danger" id="confirmBtn">
+                                    <i class="fas fa-check me-1"></i>
+                                    ${confirmText}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                document.body.appendChild(modal);
+                const bsModal = new bootstrap.Modal(modal);
+                
+                modal.querySelector('#confirmBtn').addEventListener('click', () => {
+                    bsModal.hide();
+                    modal.dataset.confirmed = 'true';
+                    resolve(true);
+                });
+                
+                modal.addEventListener('hidden.bs.modal', () => {
+                    if (!modal.dataset.confirmed) {
+                        resolve(false);
+                    }
+                    modal.remove();
+                });
+                
+                bsModal.show();
+            });
+        }
+
+        // Handle URL parameters for first message
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const mensaje = urlParams.get('mensaje');
+            
+            if (mensaje && currentChatId) {
+                const input = document.getElementById('messageInput');
+                input.value = mensaje;
+                input.dispatchEvent(new Event('input'));
+                
+                // Remove parameter from URL
+                window.history.replaceState({}, document.title, window.location.pathname);
+                
+                setTimeout(() => {
+                    enviarMensaje();
+                }, 500);
+            }
+        });
+
         // Enhanced responsive handling
         window.addEventListener('resize', function() {
             if (window.innerWidth > 768) {
                 const backdrop = document.getElementById('sidebarBackdrop');
                 backdrop.classList.remove('show');
-                
-                const mainContainer = document.getElementById('mainContainer');
-                mainContainer.classList.remove('keyboard-active');
-            }
-            
-            // Actualizar altura inicial en resize
-            if (!window.visualViewport) {
-                initialViewportHeight = window.innerHeight;
             }
         });
 
-        // Smooth page transitions
+        // Add smooth page transitions
         document.addEventListener('DOMContentLoaded', function() {
             document.body.style.opacity = '0';
             requestAnimationFrame(() => {
@@ -1943,98 +2000,25 @@
                 document.body.style.opacity = '1';
             });
         });
-
-        // Handle orientation change
-        window.addEventListener('orientationchange', function() {
-            setTimeout(() => {
-                initialViewportHeight = window.visualViewport ? window.visualViewport.height : window.innerHeight;
-                handleViewportChange();
-            }, 500);
-        });
-
-        // Prevent body scroll when sidebar is open on mobile
-        function preventBodyScroll(prevent) {
-            if (prevent) {
-                document.body.style.overflow = 'hidden';
-            } else {
-                document.body.style.overflow = '';
+        if (!currentChatId) {
+        // Usar setTimeout para asegurar que todos los elementos estén renderizados
+        setTimeout(() => {
+            const messagesContainer = document.getElementById('messagesContainer');
+            if (messagesContainer) {
+                // Scroll al inicio del contenedor de mensajes
+                messagesContainer.scrollTop = 0;
             }
-        }
-
-        // Update toggle sidebar function for mobile
-        const originalToggleSidebar = toggleSidebar;
-        toggleSidebar = function() {
-            originalToggleSidebar();
             
-            if (window.innerWidth <= 768) {
-                const sidebar = document.getElementById('sidebar');
-                const isCollapsed = sidebar.classList.contains('collapsed');
-                preventBodyScroll(!isCollapsed);
+            // También scroll de la ventana principal por si acaso
+            window.scrollTo(0, 0);
+            
+            // Opcional: enfocar el input después del scroll
+            const messageInput = document.getElementById('messageInput');
+            if (messageInput) {
+                messageInput.focus();
             }
-        };
-
-        // Close sidebar when backdrop is clicked
-        document.getElementById('sidebarBackdrop').addEventListener('click', function() {
-            preventBodyScroll(false);
-        });
-
-        // Handle safe area for devices with notches
-        function updateSafeArea() {
-            const root = document.documentElement;
-            const safeAreaTop = getComputedStyle(root).getPropertyValue('--safe-area-inset-top') || '0px';
-            const safeAreaBottom = getComputedStyle(root).getPropertyValue('--safe-area-inset-bottom') || '0px';
-            
-            // Apply safe areas if detected
-            if (safeAreaTop !== '0px' || safeAreaBottom !== '0px') {
-                console.log('Safe areas detected:', { top: safeAreaTop, bottom: safeAreaBottom });
-            }
-        }
-
-        // Initialize safe area handling
-        updateSafeArea();
-
-        // Additional iOS Safari handling
-        if (/iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream) {
-            // Disable pull-to-refresh
-            document.body.style.overscrollBehavior = 'none';
-            
-            // Handle iOS Safari address bar changes
-            let timeout;
-            window.addEventListener('resize', () => {
-                clearTimeout(timeout);
-                timeout = setTimeout(() => {
-                    const vh = window.innerHeight * 0.01;
-                    document.documentElement.style.setProperty('--vh', `${vh}px`);
-                }, 100);
-            });
-            
-            // Initial setup
-            const vh = window.innerHeight * 0.01;
-            document.documentElement.style.setProperty('--vh', `${vh}px`);
-        }
-
-        // Accessibility improvements
-        document.addEventListener('keydown', function(e) {
-            // ESC key closes sidebar on mobile
-            if (e.key === 'Escape' && window.innerWidth <= 768) {
-                const sidebar = document.getElementById('sidebar');
-                if (!sidebar.classList.contains('collapsed')) {
-                    toggleSidebar();
-                }
-            }
-        });
-
-        // Performance optimization: debounce scroll events
-        let scrollTimeout;
-        const messagesContainer = document.getElementById('messagesContainer');
-        messagesContainer.addEventListener('scroll', function() {
-            clearTimeout(scrollTimeout);
-            scrollTimeout = setTimeout(() => {
-                // Handle scroll events here if needed
-            }, 16); // ~60fps
-        });
-
-        console.log('Mobile-optimized chat template loaded successfully');
+        }, 100); // Muy poco delay pero suficiente para que termine el renderizado
+    }
     </script>
 </body>
 </html>
