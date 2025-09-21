@@ -979,47 +979,100 @@
 
         /* Mobile Responsive */
         @media (max-width: 768px) {
-            :root {
-                --sidebar-width: 300px;
-                --header-height: 64px;
-            }
+    :root {
+        --sidebar-width: 300px;
+        --header-height: 64px;
+    }
 
-            .sidebar {
-                position: fixed;
-                left: 0;
-                top: 0;
-                height: 100vh;
-                z-index: 1050;
-            }
+    .main-container {
+        height: calc(var(--vh, 1vh) * 100);
+    }
+    
+    /* Sidebar cerrado por defecto en móvil */
+    .sidebar {
+        position: fixed;
+        left: -320px; /* Mover fuera de pantalla */
+        top: 0;
+        height: 100vh;
+        z-index: 1050;
+        transition: left 0.3s ease;
+    }
+    
+    .sidebar:not(.collapsed) {
+        left: 0; /* Mostrar cuando se active */
+    }
+    
+    /* Main content ocupa todo el ancho en móvil */
+    .main-content {
+        width: 100%;
+        margin-left: 0;
+        padding-bottom: 120px; /* Espacio para el input fijo */
+    }
+    
+    /* Ajustar altura del contenedor de mensajes */
+    .messages-container {
+        height: calc(var(--vh, 1vh) * 100 - var(--header-height) - 120px);
+    }
+    
+    /* Hacer que el input area se mantenga al fondo */
+    .input-container {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: var(--bg-main);
+        border-top: 1px solid var(--border);
+        z-index: 100;
+        padding: 1rem;
+        /* Evitar que se superponga con la UI del navegador */
+        padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+    }
 
-            .chat-header {
-                padding: 0 1rem;
-            }
+    .chat-header {
+        padding: 0 1rem;
+    }
 
-            .messages-wrapper {
-                padding: 1.5rem 1rem;
-            }
+    .messages-wrapper {
+        padding: 1.5rem 1rem;
+    }
 
-            .input-container {
-                padding: 1.5rem 1rem;
-            }
+    .message {
+        margin-bottom: 1.5rem;
+    }
 
-            .message {
-                margin-bottom: 1.5rem;
-            }
+    .empty-state {
+        padding: 2rem 1rem;
+    }
 
-            .empty-state {
-                padding: 2rem 1rem;
-            }
+    .empty-state-icon {
+        font-size: 4rem;
+    }
 
-            .empty-state-icon {
-                font-size: 4rem;
-            }
+    .empty-state h2 {
+        font-size: 1.5rem;
+    }
 
-            .empty-state h2 {
-                font-size: 1.5rem;
-            }
-        }
+    .prompts-grid {
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1rem;
+    }
+
+    .prompt-card {
+        padding: 1.5rem 1rem;
+    }
+
+    .prompt-icon {
+        width: 50px;
+        height: 50px;
+        font-size: 1.3rem;
+        margin-bottom: 1rem;
+    }
+
+    .starter-prompts h3 {
+        font-size: 1.1rem;
+        margin-bottom: 1.5rem;
+    }
+}
 
         @media (max-width: 576px) {
             .sidebar-header {
@@ -1512,15 +1565,38 @@
 
         // Enhanced sidebar functionality
         function toggleSidebar() {
-            const sidebar = document.getElementById('sidebar');
-            const backdrop = document.getElementById('sidebarBackdrop');
-            
-            sidebar.classList.toggle('collapsed');
-            
-            if (window.innerWidth <= 768) {
-                backdrop.classList.toggle('show');
-            }
-        }
+    const sidebar = document.getElementById('sidebar');
+    const backdrop = document.getElementById('sidebarBackdrop');
+    
+    if (window.innerWidth <= 768) {
+        // En móvil, alternar entre collapsed/no collapsed
+        sidebar.classList.toggle('collapsed');
+        backdrop.classList.toggle('show');
+    } else {
+        // En desktop, comportamiento normal
+        sidebar.classList.toggle('collapsed');
+    }
+}
+
+// Y agregar esto al final del DOMContentLoaded, justo antes de cerrar el if (!currentChatId):
+
+// Fix para altura de viewport en móviles
+function setVH() {
+    let vh = window.innerHeight * 0.01;
+    document.documentElement.style.setProperty('--vh', `${vh}px`);
+}
+
+setVH();
+window.addEventListener('resize', setVH);
+window.addEventListener('orientationchange', () => {
+    setTimeout(setVH, 100);
+});
+
+// Asegurar que el sidebar esté cerrado por defecto en móvil
+if (window.innerWidth <= 768) {
+    const sidebar = document.getElementById('sidebar');
+    sidebar.classList.add('collapsed');
+}
 
         // Enhanced search functionality
         function buscarChats() {
